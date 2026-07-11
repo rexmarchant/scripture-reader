@@ -1,0 +1,326 @@
+/* PRODUCTION VERSION 4 — chapter_player.css */
+/* Rollback to v3: replace with chapter_player.css.v3.bak */
+/* chapter_player.css — shared styles for exported chapter player pages */
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0e0d0b;
+  --surface: #161512;
+  --border: rgba(255,255,255,0.08);
+  --text: #ede8df;
+  --muted: #6e6a62;
+  --accent: #c8a96e;
+  --accent-glow: rgba(200,169,110,0.15);
+  --radius: 10px;
+  --font: 'Lora', Georgia, serif;
+  --mono: 'IBM Plex Mono', monospace;
+  /* Safe area insets — populated by the browser on notched/gesture devices */
+  --safe-top:    env(safe-area-inset-top,    0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left,   0px);
+  --safe-right:  env(safe-area-inset-right,  0px);
+}
+
+/* Use 100dvh (dynamic viewport height) so the layout fills exactly
+   the visible area on mobile, excluding browser chrome and nav bars.
+   Falls back to 100vh on browsers that don't support dvh yet. */
+html {
+  height: 100%;
+  height: 100dvh;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  /* Allow body to scroll — prevents content being hidden under fixed bars */
+  overflow-x: hidden;
+  overflow-y: hidden;
+  height: 100%;
+  height: 100dvh;
+  /* Respect notch/island on iPhone */
+  padding-left:  var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+.player-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  height: 100dvh;
+}
+
+/* ── Header ── */
+.cp-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  /* Push content below status bar / notch */
+  padding: calc(14px + var(--safe-top)) 20px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.back-link {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  transition: color 0.12s, border-color 0.12s;
+  /* Minimum tap target for mobile */
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+.back-link:hover { color: var(--accent); border-color: rgba(200,169,110,0.3); }
+
+.cp-meta { display: flex; flex-direction: column; }
+.cp-book { font-size: 12px; color: var(--accent); font-family: var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
+.cp-chapter { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; }
+
+/* ── Audio status bar ── */
+#audio-status {
+  font-size: 13px;
+  padding: 10px 20px;
+  line-height: 1.6;
+  flex-shrink: 0;
+}
+
+/* ── Transcript ── */
+.transcript-wrap {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 20px;
+  /* Ensure transcript doesn't underlap controls on any device */
+  min-height: 0;
+}
+
+#transcript-box {
+  height: 100%;
+  overflow-y: auto;
+  padding: 1.5rem 0 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+  max-width: 680px;
+  margin: 0 auto;
+  /* Momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+}
+#transcript-box::-webkit-scrollbar { width: 4px; }
+#transcript-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+.lyric-line {
+  display: flex;
+  align-items: baseline;
+  padding: 10px 16px;
+  border-radius: 8px;
+  line-height: 1.75;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.2s;
+  margin-bottom: 2px;
+  font-size: 17px;
+}
+.lyric-line:hover { background: rgba(255,255,255,0.03); color: #b0a898; }
+.lyric-line.active {
+  color: var(--text);
+  background: var(--accent-glow);
+  border-left: 2px solid var(--accent);
+  padding-left: 14px;
+}
+.lyric-line .ts {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  margin-right: 12px;
+  flex-shrink: 0;
+  opacity: 0.45;
+  min-width: 36px;
+}
+.lyric-line.active .ts { opacity: 1; color: var(--accent); }
+.lyric-line .body { flex: 1; }
+
+/* ── Footer controls ── */
+.cp-controls {
+  flex-shrink: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  /* Push controls above home indicator / gesture bar */
+  padding: 14px 20px calc(16px + var(--safe-bottom));
+}
+
+.ctrl-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+#time-display {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 88px;
+  flex-shrink: 0;
+}
+
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  flex: 1;
+  /* Larger touch target on mobile */
+  padding: 8px 0;
+  background-clip: content-box;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+input[type=range]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border: none; border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+.ctrl-bottom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: var(--mono);
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+  white-space: nowrap;
+  /* Minimum tap target */
+  min-height: 40px;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+button:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+/* Prevent tap highlight on mobile */
+button { -webkit-tap-highlight-color: transparent; }
+
+button.play-main {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0e0d0b;
+  font-size: 20px;
+  flex-shrink: 0;
+  transition: background 0.12s;
+}
+button.play-main:hover { background: #d9bb80; }
+
+.vol-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  font-size: 14px;
+  opacity: 0.6;
+  min-width: 100px;
+}
+.vol-wrap input { width: 80px; }
+
+/* ── Mobile overrides ── */
+@media (max-width: 480px) {
+  .cp-controls {
+    padding: 12px 16px calc(12px + var(--safe-bottom));
+  }
+  .lyric-line {
+    font-size: 15px;
+    padding: 9px 12px;
+  }
+  .lyric-line .ts {
+    display: none;
+  }
+  .vol-wrap {
+    display: none;
+  }
+  button {
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+  button.play-main {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+  .cp-book { font-size: 10px; }
+  .cp-chapter { font-size: 16px; }
+}
+
+/* ── Landscape mobile ── */
+@media (max-height: 500px) and (max-width: 900px) {
+  /* Shrink header */
+  .cp-header {
+    padding-top: calc(6px + var(--safe-top));
+    padding-bottom: 6px;
+  }
+  .cp-book { font-size: 9px; }
+  .cp-chapter { font-size: 13px; }
+
+  /* Single-row controls: [⏮] [−10s] [▶] [+10s] [═══seek═══] [0:07/36:08] */
+  .cp-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px calc(6px + var(--safe-bottom));
+  }
+  /* Dissolve the two wrapper divs so all children join the flex row */
+  .ctrl-top, .ctrl-bottom {
+    display: contents;
+  }
+  /* Explicit order: buttons first, then seek bar, then time */
+  #restart-btn   { order: 1; }
+  #skip-back-btn { order: 2; }
+  #play-btn      { order: 3; }
+  #skip-fwd-btn  { order: 4; }
+  #seek-bar      { order: 5; flex: 1; min-width: 60px; padding: 6px 0; }
+  #time-display  { order: 6; font-size: 10px; min-width: 76px; text-align: right; }
+
+  /* Compact button sizing — still finger-friendly at 32px */
+  button {
+    min-height: 32px;
+    min-width: 32px;
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  button.play-main {
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+  }
+
+  /* Hide volume (no room) and timestamps in transcript */
+  .vol-wrap { display: none; }
+  .lyric-line { font-size: 14px; padding: 5px 12px; }
+  .lyric-line .ts { display: none; }
+}

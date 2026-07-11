@@ -1,0 +1,592 @@
+<!-- PRODUCTION VERSION 1 — vtt_converter.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VTT Converter — Scripture Tool</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f0f11; --surface: #18181c; --surface2: #212126;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --text: #f0efe8; --muted: #7a7a85; --accent: #c8f060; --accent2: #60c8f0;
+    --warn: #f0b860; --danger: #e06060; --radius: 10px;
+    --font: 'IBM Plex Sans', sans-serif; --mono: 'IBM Plex Mono', monospace;
+  }
+  body { background:var(--bg); color:var(--text); font-family:var(--font); font-size:15px; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:2rem 1rem 4rem; }
+  header { width:100%; max-width:700px; margin-bottom:1.5rem; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  header h1 { font-size:18px; font-weight:500; letter-spacing:-0.02em; }
+  .badge { font-family:var(--mono); font-size:11px; color:var(--accent); background:rgba(200,240,96,0.1); border:1px solid rgba(200,240,96,0.2); padding:2px 8px; border-radius:100px; }
+  .back-link { font-size:13px; color:var(--muted); text-decoration:none; margin-left:auto; }
+  .back-link:hover { color:var(--text); }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; width:100%; max-width:700px; margin-bottom:12px; }
+  .card-title { font-size:13px; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:12px; }
+  #drop-zone { border:1px dashed var(--border2); border-radius:var(--radius); padding:2rem 1rem; text-align:center; cursor:pointer; transition:background 0.15s,border-color 0.15s; width:100%; max-width:700px; margin-bottom:8px; }
+  #drop-zone:hover, #drop-zone.drag-over { background:var(--surface); border-color:var(--accent); }
+  #drop-zone .icon { font-size:28px; margin-bottom:8px; display:block; opacity:0.4; }
+  #drop-zone p { color:var(--muted); font-size:14px; line-height:1.7; }
+  #drop-zone p strong { color:var(--text); font-weight:500; }
+  #drop-zone input { display:none; }
+  .pills { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:12px; }
+  .pill { font-family:var(--mono); font-size:11px; padding:3px 10px; border-radius:100px; border:1px solid var(--border2); color:var(--muted); display:flex; align-items:center; gap:5px; }
+  .pill.ok { color:var(--accent); border-color:rgba(200,240,96,0.3); background:rgba(200,240,96,0.07); }
+  .pill.warn { color:var(--warn); border-color:rgba(240,184,96,0.3); background:rgba(240,184,96,0.07); }
+  button { background:transparent; border:1px solid var(--border2); color:var(--text); border-radius:6px; padding:6px 14px; font-family:var(--font); font-size:13px; cursor:pointer; transition:background 0.12s,border-color 0.12s; white-space:nowrap; }
+  button:hover { background:var(--surface2); }
+  button.accent { background:var(--accent); color:#0f0f11; border-color:var(--accent); font-weight:500; }
+  button.accent:hover { background:#d8ff70; }
+  button.export-btn { background:rgba(96,200,240,0.1); border-color:rgba(96,200,240,0.3); color:var(--accent2); font-weight:500; }
+  button.export-btn:hover { background:rgba(96,200,240,0.18); }
+  button.danger-btn { color:var(--danger); border-color:rgba(224,96,96,0.3); }
+  button.danger-btn:hover { background:rgba(224,96,96,0.08); }
+  button:disabled { opacity:0.35; cursor:not-allowed; }
+  .status-bar { display:none; font-size:12px; font-family:var(--mono); border-radius:var(--radius); padding:10px 14px; margin-bottom:12px; line-height:1.7; width:100%; max-width:700px; }
+  .status-bar.info  { color:var(--accent2); background:rgba(96,200,240,0.07); border:1px solid rgba(96,200,240,0.2); }
+  .status-bar.ok    { color:var(--accent);  background:rgba(200,240,96,0.07); border:1px solid rgba(200,240,96,0.2); }
+  .status-bar.warn  { color:var(--warn);    background:rgba(240,184,96,0.07); border:1px solid rgba(240,184,96,0.2); }
+  .status-bar.error { color:var(--danger);  background:rgba(224,96,96,0.07);  border:1px solid rgba(224,96,96,0.2); }
+  .results-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:4px; }
+  .results-table th { text-align:left; font-size:11px; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; padding:6px 8px; border-bottom:1px solid var(--border2); }
+  .results-table td { padding:7px 8px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.5; }
+  .results-table tr:last-child td { border-bottom:none; }
+  .results-table td.ts { font-family:var(--mono); font-size:11px; color:var(--accent2); white-space:nowrap; width:72px; }
+  .results-table td.vnum { font-family:var(--mono); font-size:11px; color:var(--accent); white-space:nowrap; width:36px; }
+  .results-table td.text { color:var(--text); }
+  .results-table td.conf { font-family:var(--mono); font-size:10px; white-space:nowrap; width:52px; }
+  .conf-high { color:var(--accent); }
+  .conf-mid  { color:var(--warn); }
+  .conf-low  { color:var(--danger); }
+  .results-table tr.low-conf td { background:rgba(224,96,96,0.04); }
+  #results-area { display:none; }
+  .tbl-wrap { max-height:380px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border2) transparent; border:1px solid var(--border); border-radius:var(--radius); margin-top:8px; }
+  .tbl-wrap::-webkit-scrollbar { width:4px; }
+  .tbl-wrap::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .how-it-works { font-size:13px; color:var(--muted); line-height:1.75; }
+  .how-it-works strong { color:var(--text); font-weight:500; }
+  .step { display:flex; gap:10px; margin-bottom:8px; align-items:flex-start; }
+  .step-num { font-family:var(--mono); font-size:11px; color:var(--accent); background:rgba(200,240,96,0.1); border:1px solid rgba(200,240,96,0.2); border-radius:100px; padding:1px 7px; flex-shrink:0; margin-top:2px; }
+  .summary-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:8px; margin-top:4px; }
+  .summary-cell { background:var(--surface2); border-radius:6px; padding:10px 12px; }
+  .summary-cell .label { font-size:11px; color:var(--muted); font-family:var(--mono); margin-bottom:4px; }
+  .summary-cell .value { font-size:20px; font-weight:500; font-family:var(--mono); color:var(--text); }
+  .summary-cell .value.ok { color:var(--accent); }
+  .summary-cell .value.warn { color:var(--warn); }
+  .summary-cell .value.danger { color:var(--danger); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>VTT Converter</h1>
+  <span class="badge">v1</span>
+  <a class="back-link" href="admin.html">← Admin</a>
+</header>
+
+<!-- HOW IT WORKS -->
+<div class="card" style="margin-bottom:12px;">
+  <div class="card-title">How It Works</div>
+  <div class="how-it-works">
+    <div class="step"><span class="step-num">1</span><span>Drop your <strong>V2 SSML</strong> file — the one with verse numbers retained, used for the sync player.</span></div>
+    <div class="step"><span class="step-num">2</span><span>Drop the <strong>Whisper VTT</strong> file generated from the same chapter's MP3.</span></div>
+    <div class="step"><span class="step-num">3</span><span>Click <strong>Convert</strong> — each verse's start time is located in the Whisper transcript by matching the first words of that verse.</span></div>
+    <div class="step"><span class="step-num">4</span><span>Download the output <strong>verse-aligned VTT</strong> and drop it into the Audio Sync Player instead of the SSML. Perfect timestamps, no manual playback needed.</span></div>
+  </div>
+</div>
+
+<!-- DROP ZONE -->
+<div id="drop-zone" tabindex="0" role="button" aria-label="Drop SSML and VTT files here">
+  <span class="icon">📂</span>
+  <p>Drop your <strong>V2 SSML</strong> and <strong>Whisper VTT</strong> files here<br>
+  <span style="font-size:12px;">or click to browse — drop both at once or one at a time</span></p>
+  <div class="pills" id="file-pills"></div>
+  <input type="file" id="file-input" accept=".ssml,.vtt" multiple>
+</div>
+
+<!-- STATUS BARS -->
+<div class="status-bar info" id="status-info"></div>
+<div class="status-bar warn" id="status-warn"></div>
+<div class="status-bar error" id="status-error"></div>
+<div class="status-bar ok" id="status-ok"></div>
+
+<!-- CONVERT BUTTON -->
+<div style="width:100%;max-width:700px;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
+  <button class="accent" id="convert-btn" disabled>Convert →</button>
+  <button class="danger-btn" id="clear-btn">✕ Clear files</button>
+</div>
+
+<!-- RESULTS -->
+<div id="results-area" style="width:100%;max-width:700px;">
+  <div class="card">
+    <div class="card-title">Conversion Summary</div>
+    <div class="summary-grid" id="summary-grid"></div>
+    <div class="row">
+      <button class="export-btn" id="download-btn">↓ Download VTT</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Verse Alignment Preview</div>
+    <div class="tbl-wrap">
+      <table class="results-table">
+        <thead><tr><th>Verse</th><th>Timestamp</th><th>Match</th><th>Text</th></tr></thead>
+        <tbody id="results-tbody"></tbody>
+      </table>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px;font-family:var(--mono);">
+      <span style="color:var(--accent);">●</span> word-matched — exact timestamp from Whisper &nbsp;
+      <span style="color:var(--warn);">~</span> interpolated — estimated between anchors &nbsp;
+      <span style="color:var(--accent2);">●</span> mid — partial word match &nbsp;
+      <span style="color:var(--danger);">●</span> low — weak match, check playback
+    </p>
+  </div>
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let ssmlText = null, vttText = null;
+let ssmlName = '', vttName = '';
+let outputVtt = '';
+let convertResult = null;
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+function showStatus(type, msg) {
+  ['info','warn','error','ok'].forEach(t => {
+    const el = $('status-' + t);
+    el.style.display = 'none';
+    el.textContent = '';
+  });
+  if (msg) {
+    const el = $('status-' + type);
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+}
+
+function setPill(type, name, isWarn) {
+  const id = 'pill-' + type;
+  let p = document.getElementById(id);
+  if (!p) { p = document.createElement('div'); p.id = id; $('file-pills').appendChild(p); }
+  p.className = 'pill ' + (isWarn ? 'warn' : 'ok');
+  p.textContent = (type === 'ssml' ? '📄 ' : '🕐 ') + name;
+}
+
+function maybeEnableConvert() {
+  $('convert-btn').disabled = !(ssmlText && vttText);
+  if (ssmlText && vttText) showStatus('info', 'Both files loaded — click Convert to generate verse-aligned VTT.');
+}
+
+// ── SSML PARSER ───────────────────────────────────────────────────────────────
+// Extracts verse lines and chapter title.
+// Returns { title: string|null, verses: [{num, text}] }
+function parseSSMLVerses(raw) {
+  const doc = new DOMParser().parseFromString(raw, 'application/xml');
+  const err = doc.querySelector('parsererror');
+  let segments = [];
+
+  if (err) {
+    segments = raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().split(/\n/).map(s => s.trim()).filter(Boolean);
+  } else {
+    const speak = doc.querySelector('speak') || doc.documentElement;
+    const acc = [];
+    function walk(node) {
+      if (node.nodeType === Node.TEXT_NODE) { const t = node.textContent.trim(); if (t) acc.push(t); return; }
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+      const tag = node.tagName.toLowerCase();
+      if (tag === 'break') { if (acc.length) acc.push(null); return; }
+      if (['p','sentence','s'].includes(tag)) { const t = node.textContent.replace(/\s+/g,' ').trim(); if (t) { acc.push(t); acc.push(null); } return; }
+      Array.from(node.childNodes).forEach(walk);
+    }
+    Array.from(speak.childNodes).forEach(walk);
+    let buf = [];
+    acc.forEach(l => { if (l === null) { if (buf.length) { segments.push(buf.join(' ')); buf = []; } } else buf.push(l); });
+    if (buf.length) segments.push(buf.join(' '));
+  }
+
+  // Separate chapter title (non-verse segment before verse 1) from verse lines
+  let title = null;
+  const verses = [];
+  segments.forEach(text => {
+    const m = text.match(/^(\d+)\.\s*(.*)/s);
+    if (m) {
+      verses.push({ num: parseInt(m[1]), text: text.replace(/\s+/g,' ').trim() });
+    } else if (!verses.length && text.trim()) {
+      // Non-verse text before first verse = chapter title/heading
+      title = text.replace(/\s+/g,' ').trim();
+    }
+  });
+  return { title, verses };
+}
+
+// ── VTT PARSER ────────────────────────────────────────────────────────────────
+// Returns [{start, startSec, text}]
+function parseVTT(raw) {
+  const cues = [];
+  const lines = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    // Match timestamp line: 00:00.000 --> 00:07.800 or 00:00:00.000 --> ...
+    const tsMatch = line.match(/^(\d{1,2}(?::\d{2})?:\d{2}\.\d+)\s+-->\s+(\d{1,2}(?::\d{2})?:\d{2}\.\d+)/);
+    if (tsMatch) {
+      const startStr = tsMatch[1];
+      const startSec = parseTimestamp(startStr);
+      i++;
+      const textLines = [];
+      while (i < lines.length && lines[i].trim() !== '') {
+        textLines.push(lines[i].trim());
+        i++;
+      }
+      const text = textLines.join(' ').trim();
+      if (text) cues.push({ start: startStr, startSec, text });
+    } else {
+      i++;
+    }
+  }
+  return cues;
+}
+
+function parseTimestamp(ts) {
+  // Handles MM:SS.mmm or HH:MM:SS.mmm
+  const parts = ts.split(':');
+  if (parts.length === 2) {
+    return parseFloat(parts[0]) * 60 + parseFloat(parts[1]);
+  } else {
+    return parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2]);
+  }
+}
+
+function secToVTT(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = (sec % 60).toFixed(3).padStart(6, '0');
+  if (h > 0) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${s}`;
+  return `${String(m).padStart(2,'0')}:${s}`;
+}
+
+// ── NORMALIZER ────────────────────────────────────────────────────────────────
+function norm(text) {
+  return text.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+// Extract first N words from verse, stripping the leading verse number.
+// Using 12 words keeps enough context that even verses with common openers
+// like "And I beheld" are distinguished by their unique suffix.
+function verseAnchorWords(verseText, n = 12) {
+  const stripped = verseText.replace(/^\d+\.\s*/, '');
+  return norm(stripped).split(' ').filter(Boolean).slice(0, n);
+}
+
+// Fuzzy word match: exact OR one is a prefix of the other (handles Whisper splitting
+// compound words or transcribing "latchet" as "latch" etc.)
+function wordsMatch(a, b) {
+  if (a === b) return true;
+  if (a.length >= 4 && b.startsWith(a)) return true;
+  if (b.length >= 4 && a.startsWith(b)) return true;
+  return false;
+}
+
+// ── ALIGNMENT ENGINE ──────────────────────────────────────────────────────────
+// Two-pass strategy:
+// Pass 1: find high-confidence timestamp anchors by word-stream matching
+// Pass 2: interpolate timestamps for unmatched verses proportionally by
+//         character count between surrounding anchors
+function alignVerses(verses, cues) {
+
+  // Build flat word list with per-word timestamps
+  // Each word stores its position within the cue so we can interpolate
+  // sub-cue timing when a verse match starts mid-cue (e.g. verse 1 after title)
+  const wordList = [];
+  cues.forEach((cue, ci) => {
+    const cueWords = norm(cue.text).split(' ').filter(Boolean);
+    const cueEnd = cues[ci + 1] ? cues[ci + 1].startSec : cue.startSec + 5;
+    const cueDur = cueEnd - cue.startSec;
+    cueWords.forEach((w, wi) => {
+      // Interpolate time within cue by word position
+      const wordSec = cue.startSec + (wi / cueWords.length) * cueDur;
+      wordList.push({ word: w, cueIdx: ci, startSec: wordSec, start: cue.start });
+    });
+  });
+
+  const totalDuration = cues[cues.length - 1].startSec + 5;
+
+  // ── PASS 1: word-stream matching ──
+  // For each verse, search the word list for the best match of its anchor words.
+  // We track wordSearchStart to enforce sequential ordering.
+  const raw = []; // {num, text, startSec, timestamp, confidence, score, maxScore, wordIdx}
+  let wordSearchStart = 0;
+
+  for (let vi = 0; vi < verses.length; vi++) {
+    const verse = verses[vi];
+    const anchor = verseAnchorWords(verse.text, 8);
+
+    let bestWordIdx = -1;
+    let bestScore = 0;
+    const searchLimit = Math.min(wordList.length, wordSearchStart + 800);
+
+    for (let wi = wordSearchStart; wi < searchLimit; wi++) {
+      if (!wordsMatch(wordList[wi].word, anchor[0])) continue;
+      let score = 0, wOffset = 0;
+      for (let ai = 0; ai < anchor.length; ai++) {
+        const w1 = wordList[wi + wOffset];
+        const w2 = wordList[wi + wOffset + 1];
+        if (!w1) break;
+        if (wordsMatch(w1.word, anchor[ai]))          { score++; wOffset++; }
+        else if (w2 && wordsMatch(w2.word, anchor[ai])) { wOffset += 2; }
+        else break;
+      }
+      if (score > bestScore) { bestScore = score; bestWordIdx = wi; }
+      if (bestScore >= Math.min(6, anchor.length)) break;
+    }
+
+    let confidence = 'low';
+    if (bestScore >= Math.min(8, anchor.length)) confidence = 'high';
+    else if (bestScore >= Math.min(5, anchor.length)) confidence = 'mid';
+
+    if (bestWordIdx !== -1) {
+      const w = wordList[bestWordIdx];
+      const candidateSec = w.startSec;
+
+      // Sanity check: reject matches that jump too far ahead.
+      // Maximum plausible gap = 3× the average seconds-per-verse.
+      // This catches false matches where a repeated phrase appears
+      // much later in the audio than expected.
+      const avgSecsPerVerse = totalDuration / verses.length;
+      const lastMatchedSec = raw.length > 0
+        ? Math.max(...raw.filter(r => !r.interpolated).map(r => r.startSec), 0)
+        : 0;
+      const plausibleMax = lastMatchedSec + avgSecsPerVerse * 3;
+
+      if (candidateSec > plausibleMax && confidence !== 'high') {
+        // Implausible jump on a weak match — interpolate instead
+        raw.push({ num: verse.num, text: verse.text, startSec: -1,
+                   timestamp: '', confidence: 'low', score: bestScore,
+                   maxScore: anchor.length, wordIdx: -1, interpolated: true });
+      } else {
+        raw.push({ num: verse.num, text: verse.text, startSec: candidateSec,
+                   timestamp: secToVTT(candidateSec), confidence, score: bestScore,
+                   maxScore: anchor.length, wordIdx: bestWordIdx, interpolated: false });
+        wordSearchStart = bestWordIdx + 1;
+      }
+    } else {
+      // Not found — mark for interpolation
+      raw.push({ num: verse.num, text: verse.text, startSec: -1,
+                 timestamp: '', confidence: 'low', score: 0,
+                 maxScore: anchor.length, wordIdx: -1, interpolated: true });
+    }
+  }
+
+  // ── PASS 2: interpolate missing timestamps ──
+  // Find surrounding anchored verses and distribute time proportionally by char count
+  for (let vi = 0; vi < raw.length; vi++) {
+    if (!raw[vi].interpolated) continue;
+
+    // Find nearest anchored verse before and after
+    let prevAnchored = -1, nextAnchored = -1;
+    for (let i = vi - 1; i >= 0; i--) { if (!raw[i].interpolated) { prevAnchored = i; break; } }
+    for (let i = vi + 1; i < raw.length; i++) { if (!raw[i].interpolated) { nextAnchored = i; break; } }
+
+    const tStart = prevAnchored >= 0 ? raw[prevAnchored].startSec : 0;
+    const tEnd   = nextAnchored >= 0 ? raw[nextAnchored].startSec : totalDuration;
+
+    // Collect the run of interpolated verses between these anchors
+    const runStart = prevAnchored + 1;
+    const runEnd   = nextAnchored >= 0 ? nextAnchored : raw.length;
+    const runVerses = raw.slice(runStart, runEnd);
+
+    // Distribute proportionally by char count, starting AFTER tStart
+    // so the first interpolated verse never collides with the anchor before it
+    const runChars = runVerses.reduce((s, v) => s + v.text.length, 0);
+    const runDuration = tEnd - tStart;
+    const minGap = runDuration / (runVerses.length + 1); // guaranteed spacing
+
+    let elapsed = 0;
+    for (let ri = 0; ri < runVerses.length; ri++) {
+      // Offset by one unit so first verse is never at tStart
+      const frac = runChars > 0
+        ? (elapsed + runVerses[ri].text.length * 0.5) / runChars
+        : (ri + 1) / (runVerses.length + 1);
+      const sec = tStart + Math.max(frac, (ri + 1) / (runVerses.length + 1) * 0.3) * runDuration;
+      runVerses[ri].startSec = Math.min(sec, tEnd - 0.1);
+      runVerses[ri].timestamp = secToVTT(runVerses[ri].startSec);
+      runVerses[ri].confidence = 'mid';
+      elapsed += runVerses[ri].text.length;
+    }
+    vi = runEnd - 1; // skip to end of run
+  }
+
+  // ── PASS 3: deduplicate — ensure every verse has a strictly later timestamp ──
+  // Two verses can land on the same Whisper cue (same startSec). Nudge duplicates
+  // forward by a small increment so the player never skips a verse.
+  const MIN_GAP = 0.1; // seconds minimum between verses
+  for (let i = 1; i < raw.length; i++) {
+    const minStart = raw[i - 1].startSec + MIN_GAP;
+    if (raw[i].startSec < minStart) {
+      raw[i].startSec = minStart;
+      raw[i].timestamp = secToVTT(minStart);
+    }
+  }
+
+  return raw;
+}
+
+// ── BUILD OUTPUT VTT ──────────────────────────────────────────────────────────
+function buildOutputVTT(aligned, title, cues) {
+  let out = 'WEBVTT\n\n';
+
+  // Chapter title cue: from 00:00 to verse 1's real start time.
+  // Verse 1 always starts at its Whisper-matched time (guaranteed > 0 for
+  // chapters that open with a spoken title like "First Nephi, Chapter 3").
+  if (title && aligned.length > 0) {
+    const verse1Start = Math.max(aligned[0].startSec, 0.1);
+    out += `${secToVTT(0)} --> ${secToVTT(verse1Start)}\n`;
+    out += `${title}\n\n`;
+    // Ensure verse 1 doesn't collide with the title cue
+    if (aligned[0].startSec < 0.1) {
+      aligned[0].startSec = 0.1;
+      aligned[0].timestamp = secToVTT(0.1);
+    }
+  }
+
+  for (let i = 0; i < aligned.length; i++) {
+    const cur = aligned[i];
+    const next = aligned[i + 1];
+    const endSec = next ? next.startSec : cur.startSec + 10;
+    out += `${secToVTT(cur.startSec)} --> ${secToVTT(endSec)}\n`;
+    out += `${cur.text}\n\n`;
+  }
+  return out;
+}
+
+// ── CONVERT ───────────────────────────────────────────────────────────────────
+$('convert-btn').addEventListener('click', () => {
+  showStatus('info', 'Parsing files…');
+  $('results-area').style.display = 'none';
+
+  try {
+    const { title, verses } = parseSSMLVerses(ssmlText);
+    if (!verses.length) { showStatus('error', 'No verse lines found in SSML. Make sure you are using the V2 SSML file (verse numbers retained).'); return; }
+
+    const cues = parseVTT(vttText);
+    if (!cues.length) { showStatus('error', 'No cues found in VTT file. Check the file is a valid Whisper WebVTT output.'); return; }
+
+    showStatus('info', `Found ${verses.length} verses and ${cues.length} VTT cues — aligning…`);
+
+    const aligned = alignVerses(verses, cues);
+    outputVtt = buildOutputVTT(aligned, title, cues);
+    convertResult = aligned;
+
+    // Summary stats
+    const high         = aligned.filter(a => !a.interpolated && a.confidence === 'high').length;
+    const interpolated = aligned.filter(a => a.interpolated).length;
+    const low          = aligned.filter(a => !a.interpolated && a.confidence === 'low').length;
+
+    $('summary-grid').innerHTML = `
+      <div class="summary-cell"><div class="label">VERSES ALIGNED</div><div class="value">${aligned.length}</div></div>
+      <div class="summary-cell"><div class="label">WORD-MATCHED</div><div class="value ok">${high}</div></div>
+      <div class="summary-cell"><div class="label">INTERPOLATED</div><div class="value ${interpolated > aligned.length * 0.3 ? 'warn' : 'ok'}">${interpolated}</div></div>
+      <div class="summary-cell"><div class="label">LOW CONFIDENCE</div><div class="value ${low > 0 ? 'warn' : 'ok'}">${low}</div></div>
+    `;
+
+    // Build preview table
+    const tbody = $('results-tbody');
+    tbody.innerHTML = '';
+    aligned.forEach(a => {
+      const tr = document.createElement('tr');
+      if (a.confidence === 'low' && !a.interpolated) tr.classList.add('low-conf');
+      let confClass, matchLabel;
+      if (a.interpolated)            { confClass = 'conf-mid';  matchLabel = '~ interpolated'; }
+      else if (a.confidence === 'high') { confClass = 'conf-high'; matchLabel = '● word-matched'; }
+      else if (a.confidence === 'mid')  { confClass = 'conf-mid';  matchLabel = '● mid'; }
+      else                              { confClass = 'conf-low';  matchLabel = '● low'; }
+      // Show first 80 chars of verse text
+      const preview = a.text.length > 85 ? a.text.slice(0, 82) + '…' : a.text;
+      tr.innerHTML = `
+        <td class="vnum">${a.num}</td>
+        <td class="ts">${a.timestamp}</td>
+        <td class="conf ${confClass}">${matchLabel}</td>
+        <td class="text">${esc(preview)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    $('results-area').style.display = 'block';
+
+    if (low > 0 || interpolated > aligned.length * 0.3) {
+      showStatus('warn', `Conversion complete — ${high} word-matched, ${interpolated} interpolated, ${low} low-confidence. Check highlighted rows in the preview table.`);
+    } else if (interpolated > 0) {
+      showStatus('ok', `Conversion complete — ${high} word-matched, ${interpolated} interpolated. Ready to download.`);
+    } else {
+      showStatus('ok', `Conversion complete — all ${aligned.length} verses word-matched. Ready to download.`);
+    }
+
+  } catch (e) {
+    showStatus('error', 'Unexpected error during conversion: ' + e.message);
+    console.error(e);
+  }
+});
+
+function esc(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── DOWNLOAD ──────────────────────────────────────────────────────────────────
+$('download-btn').addEventListener('click', () => {
+  if (!outputVtt) return;
+  // Derive output filename from SSML name
+  const base = ssmlName.replace(/(-v2)?\.ssml$/i, '').replace(/\.ssml$/i, '');
+  const filename = base + '.vtt';
+  const blob = new Blob([outputVtt], { type: 'text/vtt' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+});
+
+// ── FILE HANDLING ─────────────────────────────────────────────────────────────
+function handleFiles(files) {
+  Array.from(files).forEach(file => {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const reader = new FileReader();
+    reader.onload = e => {
+      if (ext === 'ssml') {
+        ssmlText = e.target.result;
+        ssmlName = file.name;
+        setPill('ssml', file.name, false);
+      } else if (ext === 'vtt') {
+        vttText = e.target.result;
+        vttName = file.name;
+        setPill('vtt', file.name, false);
+      } else {
+        showStatus('warn', `Unrecognised file type: ${file.name} — drop a .ssml and a .vtt file.`);
+        return;
+      }
+      maybeEnableConvert();
+    };
+    reader.readAsText(file);
+  });
+}
+
+$('drop-zone').addEventListener('click', () => $('file-input').click());
+$('drop-zone').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') $('file-input').click(); });
+$('file-input').addEventListener('change', e => handleFiles(e.target.files));
+$('drop-zone').addEventListener('dragover', e => { e.preventDefault(); $('drop-zone').classList.add('drag-over'); });
+$('drop-zone').addEventListener('dragleave', () => $('drop-zone').classList.remove('drag-over'));
+$('drop-zone').addEventListener('drop', e => { e.preventDefault(); $('drop-zone').classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
+
+// ── CLEAR ─────────────────────────────────────────────────────────────────────
+$('clear-btn').addEventListener('click', () => {
+  ssmlText = null; vttText = null; ssmlName = ''; vttName = '';
+  outputVtt = ''; convertResult = null;
+  $('file-pills').innerHTML = '';
+  $('file-input').value = '';
+  $('convert-btn').disabled = true;
+  $('results-area').style.display = 'none';
+  ['info','warn','error','ok'].forEach(t => { $('status-' + t).style.display = 'none'; });
+});
+</script>
+</body>
+</html>

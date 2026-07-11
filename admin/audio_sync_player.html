@@ -1,0 +1,725 @@
+<!-- PRODUCTION VERSION 4 — audio_sync_player.html -->
+<!-- Rollback to v3: replace with audio_sync_player.html.v2.bak -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audio Sync Player — Scripture Tool</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f0f11; --surface: #18181c; --surface2: #212126;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --text: #f0efe8; --muted: #7a7a85; --accent: #c8f060; --accent2: #60c8f0;
+    --warn: #f0b860; --danger: #e06060; --radius: 10px;
+    --font: 'IBM Plex Sans', sans-serif; --mono: 'IBM Plex Mono', monospace;
+  }
+  body { background:var(--bg); color:var(--text); font-family:var(--font); font-size:15px; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:2rem 1rem 4rem; }
+  header { width:100%; max-width:700px; margin-bottom:1.5rem; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  header h1 { font-size:18px; font-weight:500; letter-spacing:-0.02em; }
+  .badge { font-family:var(--mono); font-size:11px; color:var(--accent); background:rgba(200,240,96,0.1); border:1px solid rgba(200,240,96,0.2); padding:2px 8px; border-radius:100px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; width:100%; max-width:700px; margin-bottom:12px; }
+  .card-title { font-size:13px; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:12px; }
+  #drop-zone { border:1px dashed var(--border2); border-radius:var(--radius); padding:2rem 1rem; text-align:center; cursor:pointer; transition:background 0.15s,border-color 0.15s; width:100%; max-width:700px; margin-bottom:8px; }
+  #drop-zone:hover, #drop-zone.drag-over { background:var(--surface); border-color:var(--accent); }
+  #drop-zone .icon { font-size:28px; margin-bottom:8px; display:block; opacity:0.4; }
+  #drop-zone p { color:var(--muted); font-size:14px; line-height:1.7; }
+  #drop-zone p strong { color:var(--text); font-weight:500; }
+  #drop-zone input { display:none; }
+  .pills { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:12px; }
+  .pill { font-family:var(--mono); font-size:11px; padding:3px 10px; border-radius:100px; border:1px solid var(--border2); color:var(--muted); display:flex; align-items:center; gap:5px; }
+  .pill.ok { color:var(--accent); border-color:rgba(200,240,96,0.3); background:rgba(200,240,96,0.07); }
+  .pill.warn { color:var(--warn); border-color:rgba(240,184,96,0.3); background:rgba(240,184,96,0.07); }
+  .field-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .field-row label { font-size:13px; color:var(--muted); white-space:nowrap; min-width:110px; }
+  .field-row input[type=text], .field-row input[type=number] { background:var(--surface2); border:1px solid var(--border2); color:var(--text); border-radius:6px; padding:6px 10px; font-family:var(--font); font-size:13px; flex:1; min-width:0; }
+  .field-row input[type=number] { flex:0 0 72px; text-align:center; font-family:var(--mono); }
+  .field-row input:focus { outline:none; border-color:var(--accent); }
+  button { background:transparent; border:1px solid var(--border2); color:var(--text); border-radius:6px; padding:6px 14px; font-family:var(--font); font-size:13px; cursor:pointer; transition:background 0.12s,border-color 0.12s; white-space:nowrap; }
+  button:hover { background:var(--surface2); }
+  button.accent { background:var(--accent); color:#0f0f11; border-color:var(--accent); font-weight:500; }
+  button.accent:hover { background:#d8ff70; }
+  button.export-btn { background:rgba(96,200,240,0.1); border-color:rgba(96,200,240,0.3); color:var(--accent2); font-weight:500; }
+  button.export-btn:hover { background:rgba(96,200,240,0.18); }
+  button.danger-btn { color:var(--danger); border-color:rgba(224,96,96,0.3); }
+  button.danger-btn:hover { background:rgba(224,96,96,0.08); }
+  button.log-btn { color:var(--warn); border-color:rgba(240,184,96,0.3); }
+  button.log-btn:hover { background:rgba(240,184,96,0.08); }
+  .ctrl-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  #play-btn { width:40px; height:40px; border-radius:50%; background:var(--accent); border:none; color:#0f0f11; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; font-size:18px; transition:background 0.12s; }
+  #play-btn:hover { background:#d8ff70; }
+  input[type=range] { -webkit-appearance:none; appearance:none; height:3px; background:var(--border2); border-radius:2px; outline:none; cursor:pointer; flex:1; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:var(--accent); cursor:pointer; }
+  input[type=range]::-moz-range-thumb { width:14px; height:14px; border:none; border-radius:50%; background:var(--accent); cursor:pointer; }
+  #time-display { font-family:var(--mono); font-size:12px; color:var(--muted); min-width:96px; text-align:right; }
+  .vol-row { display:flex; align-items:center; gap:8px; }
+  #transcript-box { height:340px; overflow-y:auto; padding:4px 0; scrollbar-width:thin; scrollbar-color:var(--border2) transparent; }
+  #transcript-box::-webkit-scrollbar { width:4px; }
+  #transcript-box::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+  .lyric-line { padding:8px 14px; border-radius:7px; font-size:15px; line-height:1.65; color:var(--muted); cursor:pointer; transition:background 0.12s,color 0.12s; display:flex; align-items:baseline; margin-bottom:1px; }
+  .lyric-line:hover { background:var(--surface2); color:var(--text); }
+  .lyric-line.active { background:rgba(200,240,96,0.08); color:var(--text); border-left:2px solid var(--accent); padding-left:12px; }
+  .lyric-line .ts { font-family:var(--mono); font-size:10px; color:var(--muted); margin-right:10px; flex-shrink:0; opacity:0.6; min-width:38px; }
+  .lyric-line.active .ts { opacity:1; color:var(--accent); }
+  .lyric-line .body { flex:1; }
+  .lyric-line .meta { font-family:var(--mono); font-size:10px; color:var(--muted); margin-left:10px; flex-shrink:0; opacity:0.4; white-space:nowrap; }
+  #timing-info { display:none; font-size:12px; font-family:var(--mono); color:var(--accent2); background:rgba(96,200,240,0.07); border:1px solid rgba(96,200,240,0.2); border-radius:var(--radius); padding:10px 14px; margin-bottom:12px; line-height:1.7; width:100%; max-width:700px; }
+  #ssml-notice { display:none; font-size:12px; color:var(--warn); background:rgba(240,184,96,0.07); border:1px solid rgba(240,184,96,0.2); border-radius:var(--radius); padding:10px 14px; margin-bottom:12px; line-height:1.7; width:100%; max-width:700px; }
+  #export-status { display:none; font-size:12px; font-family:var(--mono); color:var(--accent); background:rgba(200,240,96,0.07); border:1px solid rgba(200,240,96,0.2); border-radius:var(--radius); padding:10px 14px; margin-bottom:12px; line-height:1.7; width:100%; max-width:700px; }
+  #edit-area { display:none; width:100%; max-width:700px; margin-bottom:12px; }
+  #edit-area textarea { width:100%; height:130px; font-family:var(--mono); font-size:12px; background:var(--surface2); border:1px solid var(--border2); color:var(--text); border-radius:var(--radius); padding:10px 14px; resize:vertical; line-height:1.6; }
+  #edit-area textarea:focus { outline:none; border-color:var(--accent); }
+  .row { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+  .bottom-row { display:flex; gap:8px; flex-wrap:wrap; width:100%; max-width:700px; margin-top:4px; }
+  hr { border:none; border-top:1px solid var(--border); margin:4px 0; }
+  @media(max-width:500px) { .lyric-line .meta { display:none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Audio Sync Player</h1>
+  <span class="badge" id="rate-badge">153c = 11s</span>
+  <span class="badge" style="color:var(--accent2);background:rgba(96,200,240,0.1);border-color:rgba(96,200,240,0.2);">Scripture Tool v4</span>
+</header>
+
+<!-- Drop zone -->
+<div id="drop-zone" role="button" tabindex="0">
+  <span class="icon">🎵</span>
+  <p>Drop your <strong>MP3</strong> + transcript here<br>
+  <small style="font-size:12px;opacity:0.6">Supports .lrc .vtt .srt .ssml .txt — click to browse</small></p>
+  <input type="file" id="file-input" multiple accept=".mp3,.lrc,.vtt,.srt,.ssml,.txt,.xml">
+  <div class="pills" id="file-pills"></div>
+</div>
+
+<!-- Clear + log toolbar -->
+<div style="width:100%;max-width:700px;display:flex;gap:8px;margin-bottom:12px;">
+  <button id="clear-files-btn" class="danger-btn" style="font-size:12px;">✕ Clear files</button>
+  <button id="download-log-btn" class="log-btn" style="font-size:12px;margin-left:auto;">⬇ Download export log</button>
+</div>
+
+<div id="ssml-notice"></div>
+<div id="timing-info"></div>
+<div id="export-status"></div>
+
+<!-- Timing rate -->
+<div class="card">
+  <div class="card-title">Timing Rate</div>
+  <div class="field-row">
+    <label>Chars per unit</label>
+    <input type="number" id="chars-input" value="153" min="1" max="9999" step="1">
+    <span style="color:var(--muted);font-size:13px;">chars =</span>
+    <input type="number" id="secs-input" value="11" min="0.5" max="999" step="0.5">
+    <span style="color:var(--muted);font-size:13px;">seconds</span>
+    <button id="recalc-btn">Recalculate</button>
+  </div>
+</div>
+
+<!-- Player -->
+<div id="player-area" style="display:none;width:100%;max-width:700px;">
+  <div class="card">
+    <div id="track-name" style="font-size:15px;font-weight:500;margin-bottom:2px;">—</div>
+    <div id="track-sub" style="font-size:12px;color:var(--muted);font-family:var(--mono);margin-bottom:14px;">No transcript loaded</div>
+    <div class="ctrl-row">
+      <button id="play-btn" aria-label="Play">▶</button>
+      <input type="range" id="seek-bar" min="0" max="100" value="0" step="0.1" aria-label="Seek">
+      <span id="time-display">0:00 / 0:00</span>
+    </div>
+    <div class="vol-row">
+      <span style="opacity:0.5;font-size:15px;">🔉</span>
+      <input type="range" id="vol-bar" min="0" max="1" value="1" step="0.01" aria-label="Volume">
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="transcript-box" role="region" aria-label="Synchronized transcript">
+      <div style="text-align:center;padding:3rem 1rem;color:var(--muted);font-size:14px;">Load a transcript to see synchronized text here.</div>
+    </div>
+  </div>
+
+  <!-- Export panel -->
+  <div class="card">
+    <div class="card-title">Export Chapter Player</div>
+    <div class="field-row">
+      <label>Scripture Set</label>
+      <input type="text" id="exp-scripture-set" placeholder="e.g. Book of Mormon, KJV Bible">
+    </div>
+    <div class="field-row">
+      <label>Book</label>
+      <input type="text" id="exp-book" placeholder="e.g. 1 Nephi">
+    </div>
+    <div class="field-row">
+      <label>Chapter</label>
+      <input type="text" id="exp-chapter" placeholder="e.g. Chapter 1">
+    </div>
+
+    <hr style="margin:12px 0;">
+
+    <div style="font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Audio Source — Archive.org</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.9;">
+      Archive.org provides free, permanent, streamable MP3 hosting. To get your direct URL:<br>
+      1. Go to <strong style="color:var(--accent2);">archive.org/upload</strong> and upload your MP3.<br>
+      2. After upload, open the item page and find your file under the download section.<br>
+      3. Right-click the filename → <strong style="color:var(--text);">Copy link address</strong>.<br>
+      <span style="color:var(--danger);">✗ Wrong:</span> <code style="font-size:11px;">archive.org/<strong>details</strong>/your-item</code><br>
+      <span style="color:var(--accent);">✓ Correct:</span> <code style="font-size:11px;">archive.org/<strong>download</strong>/your-item/your-file.mp3</code>
+    </div>
+    <div class="field-row">
+      <label>MP3 URL</label>
+      <input type="text" id="exp-audio-path" placeholder="https://archive.org/download/ITEM/file.mp3">
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;">
+      Or use a relative path (e.g. <code style="color:var(--accent2)">audio/file.mp3</code>) if hosting audio on Netlify.
+    </div>
+
+    <hr style="margin-bottom:12px;">
+    <div class="row">
+      <button class="export-btn" id="export-btn">⬇ Export Chapter Player</button>
+      <button id="copy-json-btn" style="color:var(--muted);">Copy JSON</button>
+      <button id="save-json-btn" style="color:var(--muted);">Save JSON to file</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manual paste -->
+<div class="bottom-row">
+  <button id="show-edit-btn">✏ Paste transcript manually</button>
+</div>
+<div id="edit-area">
+  <div class="card" style="margin-top:8px;">
+    <div style="font-size:13px;font-weight:500;margin-bottom:8px;">Paste transcript</div>
+    <textarea id="transcript-input" placeholder="Paste LRC, VTT, SRT, SSML, or plain text..."></textarea>
+    <div class="row">
+      <button class="accent" id="parse-btn">Parse</button>
+      <button id="toggle-edit-btn">Hide</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let CHARS_PER_UNIT = 153, SECS_PER_UNIT = 11;
+const audio = new Audio();
+let lyrics = [], rawSegments = null, lastWasSSML = false;
+let currentIdx = -1, isSeeking = false;
+let loadedAudioName = '', loadedTextName = '';
+
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmt = s => { if(!isFinite(s))return'0:00'; const m=Math.floor(s/60),ss=Math.floor(s%60).toString().padStart(2,'0'); return `${m}:${ss}`; };
+// Strip leading verse prefix (e.g. "1.  " or "12. " or "3.") before counting chars for timing.
+// Uses \s* so it still matches even if the SSML parser collapsed the two spaces to one or zero.
+const countableChars = text => text.replace(/^\d+\.\s*/,'').length;
+const charDur = text => (countableChars(text) / CHARS_PER_UNIT) * SECS_PER_UNIT;
+
+// Verse lines start with "N." — used only to decide whether to strip the prefix
+const isVerseLine = text => /^\d+\./.test(text);
+
+function charSpace(segs) {
+  let t=0, lines=[];
+  segs.forEach(text=>{ lines.push({time:t,text}); t+=charDur(text); });
+  return lines;
+}
+
+function showTimingInfo(segs, audioDur) {
+  const totalCalc = segs.reduce((s,t) => s + charDur(t), 0);
+  const totalChars = segs.reduce((s,t) => s + countableChars(t), 0);
+  const avg = segs.length ? Math.round(totalChars / segs.length) : 0;
+  const hasAudio = audioDur > 0 && isFinite(audioDur);
+  const diff = hasAudio ? (totalCalc - audioDur) : null;
+  const diffStr = diff !== null
+    ? ` · ${diff >= 0 ? '+' : ''}${diff.toFixed(1)}s vs audio (${fmt(audioDur)})`
+    : ' · load MP3 to see diff vs audio';
+  $('timing-info').style.display = 'block';
+  $('timing-info').textContent = `${segs.length} lines · ${totalChars.toLocaleString()} chars · avg ${avg}c/line · calc ${fmt(totalCalc)}${diffStr}`;
+}
+
+function showTimedInfo(lines, formatLabel) {
+  // For pre-timed formats (VTT/LRC/SRT) — show line count and time span
+  if (!lines.length) return;
+  const first = lines[0].time, last = lines[lines.length-1].time;
+  $('timing-info').style.display = 'block';
+  $('timing-info').textContent = `${formatLabel} — ${lines.length} lines · timestamps ${fmt(first)} → ${fmt(last)} · timing is exact (rate controls not used)`;
+}
+
+function setRateControlsVisible(visible) {
+  const card = $('recalc-btn').closest('.card');
+  if (card) card.style.opacity = visible ? '' : '0.35';
+  $('recalc-btn').disabled = !visible;
+  $('chars-input').disabled = !visible;
+  $('secs-input').disabled = !visible;
+}
+
+function parseSSML(text) {
+  const doc=new DOMParser().parseFromString(text,'application/xml');
+  if(doc.querySelector('parsererror')) return text.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+  const acc=[];
+  function walk(node){
+    if(node.nodeType===Node.TEXT_NODE){const t=node.textContent.trim();if(t)acc.push(t);return;}
+    if(node.nodeType!==Node.ELEMENT_NODE)return;
+    const tag=node.tagName.toLowerCase();
+    if(tag==='break'){if(acc.length)acc.push(null);return;}
+    if(['p','sentence','s'].includes(tag)){const t=node.textContent.replace(/\s+/g,' ').trim();if(t){acc.push(t);acc.push(null);}return;}
+    if(['prosody','emphasis','voice','say-as','sub','phoneme'].includes(tag)){const t=node.textContent.replace(/\s+/g,' ').trim();if(t)acc.push(t);return;}
+    Array.from(node.childNodes).forEach(walk);
+  }
+  Array.from((doc.querySelector('speak')||doc.documentElement).childNodes).forEach(walk);
+  const out=[]; let buf=[];
+  acc.forEach(l=>{if(l===null){if(buf.length){out.push(buf.join(' '));buf=[];}}else buf.push(l);});
+  if(buf.length)out.push(buf.join(' '));
+  return out.filter(Boolean);
+}
+function parseLRC(text){const re=/\[(\d+):(\d+\.\d+)\](.*)/;return text.split('\n').flatMap(l=>{const m=l.match(re);return m?[{time:parseInt(m[1])*60+parseFloat(m[2]),text:m[3].trim()}]:[];}).sort((a,b)=>a.time-b.time);}
+function parseVTT(text){return text.split(/\n\n+/).flatMap(block=>{const bl=block.trim().split('\n');let ts='',tl=[];bl.forEach(l=>{if(l.includes('-->'))ts=l;else if(l&&!l.match(/^\d+$/)&&l!=='WEBVTT')tl.push(l);});if(!ts||!tl.length)return[];let t=0,m;m=ts.match(/(\d+):(\d+):(\d+\.\d+)\s*-->/);if(m)t=+m[1]*3600+ +m[2]*60+parseFloat(m[3]);else{m=ts.match(/(\d+):(\d+\.\d+)\s*-->/);if(m)t=+m[1]*60+parseFloat(m[2]);}return[{time:t,text:tl.join(' ').replace(/<[^>]+>/g,'').trim()}];}).sort((a,b)=>a.time-b.time);}
+function parseSRT(text){return text.split(/\n\n+/).flatMap(block=>{const bl=block.trim().split('\n');let ts='',tl=[];bl.forEach(l=>{if(l.includes('-->'))ts=l;else if(l&&!l.match(/^\d+$/))tl.push(l);});if(!ts||!tl.length)return[];const m=ts.match(/(\d+):(\d+):(\d+)[,.](\d+)\s*-->/);if(!m)return[];return[{time:+m[1]*3600+ +m[2]*60+ +m[3]+ +m[4]/1000,text:tl.join(' ').replace(/<[^>]+>/g,'').trim()}];}).sort((a,b)=>a.time-b.time);}
+function isSSML(t){const s=t.trim().toLowerCase();return s.startsWith('<speak')||s.includes('<speak>')||(s.startsWith('<?xml')&&s.includes('<speak'));}
+
+function parseAny(text,ext){
+  if(ext==='lrc')return{lines:parseLRC(text),wasSSML:false,segs:null};
+  if(ext==='vtt')return{lines:parseVTT(text),wasSSML:false,segs:null};
+  if(ext==='srt')return{lines:parseSRT(text),wasSSML:false,segs:null};
+  if(ext==='ssml'||ext==='xml'||isSSML(text)){const s=parseSSML(text);return{lines:charSpace(s),wasSSML:true,segs:s};}
+  if(text.includes('-->'))return{lines:text.startsWith('WEBVTT')?parseVTT(text):parseSRT(text),wasSSML:false,segs:null};
+  if(text.match(/\[\d+:\d+\.\d+\]/))return{lines:parseLRC(text),wasSSML:false,segs:null};
+  const s=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  return{lines:charSpace(s),wasSSML:false,segs:s};
+}
+
+function renderLyrics(wasSSML){
+  if(wasSSML){$('ssml-notice').style.display='block';$('ssml-notice').textContent=`SSML loaded — tags stripped, timing at ${CHARS_PER_UNIT}c = ${SECS_PER_UNIT}s/line.`;}
+  else $('ssml-notice').style.display='none';
+  if(!lyrics.length){
+    $('transcript-box').innerHTML='<div style="text-align:center;padding:3rem 1rem;color:var(--muted);font-size:14px;">Load a transcript to see synchronized text here.</div>';
+    return;
+  }
+  $('transcript-box').innerHTML='';
+  lyrics.forEach((l,i)=>{
+    const div=document.createElement('div');
+    div.className='lyric-line';div.dataset.idx=i;
+    const dur=i<lyrics.length-1?lyrics[i+1].time-l.time:charDur(l.text);
+    div.innerHTML=`<span class="ts">${fmt(l.time)}</span><span class="body">${esc(l.text)}</span><span class="meta">${countableChars(l.text)}c ${dur.toFixed(1)}s</span>`;
+    div.addEventListener('click',()=>{audio.currentTime=l.time;if(audio.paused)audio.play();updatePlayBtn();});
+    $('transcript-box').appendChild(div);
+  });
+  const tc=lyrics.reduce((s,l)=>s+countableChars(l.text),0);
+  const avgC=lyrics.length?Math.round(tc/lyrics.length):0;
+  $('track-sub').textContent=`${lyrics.length} lines · avg ${avgC}c · ${CHARS_PER_UNIT}c=${SECS_PER_UNIT}s`;
+  $('rate-badge').textContent=`${CHARS_PER_UNIT}c = ${SECS_PER_UNIT}s`;
+}
+
+// ── CLEAR FILES ───────────────────────────────────────────────────────────────
+$('clear-files-btn').addEventListener('click', () => {
+  audio.pause(); audio.src = '';
+  lyrics = []; rawSegments = null; lastWasSSML = false;
+  loadedAudioName = ''; loadedTextName = '';
+  currentIdx = -1;
+  $('file-pills').innerHTML = '';
+  $('player-area').style.display = 'none';
+  $('ssml-notice').style.display = 'none';
+  $('timing-info').style.display = 'none';
+  setRateControlsVisible(true);
+  $('export-status').style.display = 'none';
+  $('track-name').textContent = '—';
+  $('track-sub').textContent = 'No transcript loaded';
+  $('time-display').textContent = '0:00 / 0:00';
+  $('seek-bar').value = 0;
+  $('file-input').value = '';
+});
+
+function updatePlayBtn(){$('play-btn').textContent=audio.paused?'▶':'⏸';}
+function updateActive(){
+  if(!lyrics.length)return;
+  const ct=audio.currentTime;let idx=-1;
+  for(let i=0;i<lyrics.length;i++){if(ct>=lyrics[i].time)idx=i;else break;}
+  if(idx===currentIdx)return;currentIdx=idx;
+  document.querySelectorAll('.lyric-line').forEach(el=>el.classList.remove('active'));
+  if(idx>=0){const el=document.querySelector(`.lyric-line[data-idx="${idx}"]`);if(el){el.classList.add('active');$('transcript-box').scrollTo({top:el.offsetTop-$('transcript-box').offsetTop-$('transcript-box').clientHeight/3,behavior:'smooth'});}}
+}
+
+$('recalc-btn').addEventListener('click',()=>{
+  const c=parseFloat($('chars-input').value),s=parseFloat($('secs-input').value);
+  if(!c||!s||c<=0||s<=0)return;
+  CHARS_PER_UNIT=c; SECS_PER_UNIT=s;
+  if(rawSegments){
+    lyrics=charSpace(rawSegments); currentIdx=-1; renderLyrics(lastWasSSML);
+    const dur=(audio.duration&&isFinite(audio.duration))?audio.duration:0;
+    showTimingInfo(rawSegments,dur);
+  }
+  $('rate-badge').textContent=`${Math.round(c)}c = ${s}s`;
+});
+
+audio.addEventListener('loadedmetadata',()=>{$('time-display').textContent=`0:00 / ${fmt(audio.duration)}`;if(rawSegments)showTimingInfo(rawSegments,audio.duration);});
+audio.addEventListener('timeupdate',()=>{if(!isSeeking){$('seek-bar').value=audio.duration?audio.currentTime/audio.duration*100:0;$('time-display').textContent=`${fmt(audio.currentTime)} / ${fmt(audio.duration||0)}`;}updateActive();});
+audio.addEventListener('ended',()=>{updatePlayBtn();currentIdx=-1;document.querySelectorAll('.lyric-line').forEach(el=>el.classList.remove('active'));});
+audio.addEventListener('play',updatePlayBtn);audio.addEventListener('pause',updatePlayBtn);
+
+$('play-btn').addEventListener('click',()=>{audio.paused?audio.play():audio.pause();});
+$('seek-bar').addEventListener('mousedown',()=>isSeeking=true);
+$('seek-bar').addEventListener('input',()=>{if(audio.duration){audio.currentTime=$('seek-bar').value/100*audio.duration;$('time-display').textContent=`${fmt(audio.currentTime)} / ${fmt(audio.duration)}`;} });
+$('seek-bar').addEventListener('mouseup',()=>isSeeking=false);
+$('vol-bar').addEventListener('input',()=>audio.volume=$('vol-bar').value);
+
+function setPill(type,name,warn){
+  const id=`pill-${type}`;let p=document.getElementById(id);
+  if(!p){p=document.createElement('div');p.id=id;$('file-pills').appendChild(p);}
+  p.className='pill '+(warn?'warn':'ok');
+  p.textContent=(type==='audio'?'🎵 ':'📄 ')+name;
+}
+
+function handleFiles(files){
+  Array.from(files).forEach(file=>{
+    const ext=file.name.split('.').pop().toLowerCase();
+    if(ext==='mp3'){
+      audio.src=URL.createObjectURL(file);
+      loadedAudioName=file.name;
+      $('track-name').textContent=file.name.replace(/\.[^.]+$/,'');
+      $('exp-audio-path').placeholder=`audio/${file.name}`;
+      setPill('audio',file.name,false);
+      $('player-area').style.display='block';
+    } else {
+      const reader=new FileReader();
+      reader.onload=e=>{
+        loadedTextName=file.name;
+        const{lines,wasSSML,segs}=parseAny(e.target.result,ext);
+        lyrics=lines;rawSegments=segs;lastWasSSML=wasSSML;
+        currentIdx=-1;renderLyrics(wasSSML);
+        if(segs){showTimingInfo(segs,audio.duration||0);}
+        else{showTimedInfo(lines,ext.toUpperCase());}
+        setRateControlsVisible(!!segs);
+        setPill('text',file.name,wasSSML);
+        $('player-area').style.display='block';
+      };
+      reader.readAsText(file);
+    }
+  });
+}
+
+$('drop-zone').addEventListener('click',()=>$('file-input').click());
+$('drop-zone').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')$('file-input').click();});
+$('file-input').addEventListener('change',e=>handleFiles(e.target.files));
+$('drop-zone').addEventListener('dragover',e=>{e.preventDefault();$('drop-zone').classList.add('drag-over');});
+$('drop-zone').addEventListener('dragleave',()=>$('drop-zone').classList.remove('drag-over'));
+$('drop-zone').addEventListener('drop',e=>{e.preventDefault();$('drop-zone').classList.remove('drag-over');handleFiles(e.dataTransfer.files);});
+
+$('parse-btn').addEventListener('click',()=>{
+  const text=$('transcript-input').value.trim();if(!text)return;
+  const{lines,wasSSML,segs}=parseAny(text,'');
+  lyrics=lines;rawSegments=segs;lastWasSSML=wasSSML;
+  currentIdx=-1;renderLyrics(wasSSML);
+  if(segs){showTimingInfo(segs,audio.duration||0);}
+  else{showTimedInfo(lines,'Timed');}
+  setRateControlsVisible(!!segs);
+  $('player-area').style.display='block';
+  if(!audio.src)$('track-name').textContent=wasSSML?'SSML transcript':'Transcript';
+});
+$('show-edit-btn').addEventListener('click',()=>{$('edit-area').style.display='block';$('show-edit-btn').style.display='none';});
+$('toggle-edit-btn').addEventListener('click',()=>{$('edit-area').style.display='none';$('show-edit-btn').style.display='';});
+
+// ── LIBRARY ───────────────────────────────────────────────────────────────────
+const STORE_KEY = 'scripture_reader_chapters_v2';
+function loadLibrary() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORE_KEY)) || [];
+    // Migrate: textfiles/ → chapterfiles/
+    const migrated = raw.map(c => ({
+      ...c,
+      file: c.file
+        ? c.file.replace(/^textfiles\//,'chapterfiles/').replace(/^(?!chapterfiles\/)(.+)/,'chapterfiles/$1')
+        : c.file
+    }));
+    const changed = migrated.some((c,i) => c.file !== raw[i].file);
+    if(changed) localStorage.setItem(STORE_KEY, JSON.stringify(migrated));
+    return migrated;
+  } catch { return []; }
+}
+function saveLibrary(arr) { localStorage.setItem(STORE_KEY, JSON.stringify(arr)); }
+
+// ── BUILD INDEX.HTML (3-level hierarchy) ─────────────────────────────────────
+function buildIndexHtml(chapters) {
+  const sets = {};
+  chapters.forEach(c => {
+    const ss = c.scriptureSet || 'General';
+    const bk = c.book || 'Unknown';
+    if(!sets[ss]) sets[ss]={};
+    if(!sets[ss][bk]) sets[ss][bk]=[];
+    sets[ss][bk].push(c);
+  });
+
+  const sidebarItems = Object.entries(sets).map(([ss, books]) => `
+    <div class="set-section">
+      <div class="set-label" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">${ss} <span class="arrow">▶</span></div>
+      <div class="set-list">${Object.entries(books).map(([bk, chs]) => `
+        <div class="book-section">
+          <div class="book-label" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">— ${bk} <span class="arrow">▶</span></div>
+          <div class="chapter-list">${chs.map(ch=>`<a class="chapter-item" href="${ch.file}">${ch.chapter}</a>`).join('')}</div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+
+  const gridItems = Object.entries(sets).map(([ss, books]) => `
+    <div class="set-group">
+      <div class="set-group-title">${ss}</div>
+      ${Object.entries(books).map(([bk, chs]) => `
+        <div class="book-group">
+          <div class="book-group-title">${bk}</div>
+          <div class="chapter-grid">${chs.map(ch=>{
+            const durStr = ch.duration ? (() => { const m=Math.floor(ch.duration/60), s=Math.floor(ch.duration%60).toString().padStart(2,'0'); return `${m}:${s}`; })() : '';
+            return `
+            <a class="chapter-card" href="${ch.file}">
+              <div class="play-icon">▶</div>
+              <div class="card-text">
+                <div class="card-chapter">${ch.chapter}</div>
+                <div class="card-book">${bk}${durStr ? `<span class="card-duration">${durStr}</span>` : ''}</div>
+              </div>
+            </a>`;}).join('')}
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Scripture Reader</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0e0d0b;--surface:#161512;--surface2:#1d1c18;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--text:#ede8df;--muted:#6e6a62;--accent:#c8a96e;--accent-glow:rgba(200,169,110,0.12);--radius:10px;--font:'Lora',Georgia,serif;--mono:'IBM Plex Mono',monospace;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;}
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sidebar-header{padding:22px 20px 16px;border-bottom:1px solid var(--border);}
+.app-title{font-size:18px;font-weight:600;letter-spacing:-0.01em;line-height:1.2;}
+.app-sub{font-family:var(--mono);font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;}
+.book-nav{padding:8px 0;flex:1;}
+.set-section{margin-bottom:2px;}
+.set-label{display:flex;align-items:center;justify-content:space-between;padding:9px 20px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;user-select:none;background:rgba(255,255,255,0.03);}
+.set-label:hover{color:var(--accent);}
+.set-list{display:none;}
+.set-list.open{display:block;}
+.book-section{margin-bottom:0;}
+.book-label{display:flex;align-items:center;justify-content:space-between;padding:7px 20px 7px 32px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;user-select:none;}
+.book-label:hover{color:var(--text);}
+.chapter-list{display:none;padding:0 0 4px;}
+.chapter-list.open{display:block;}
+.chapter-item{display:block;padding:5px 20px 5px 44px;font-size:12px;color:var(--muted);text-decoration:none;font-family:var(--mono);}
+.chapter-item:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+.arrow{font-size:10px;transition:transform 0.2s;opacity:0.4;font-family:var(--mono);}
+.set-label.open .arrow,.book-label.open .arrow{transform:rotate(90deg);}
+.main{flex:1;padding:3rem 2.5rem;max-width:860px;}
+.welcome{margin-bottom:3rem;}
+.welcome h2{font-size:28px;font-weight:600;letter-spacing:-0.02em;margin-bottom:8px;}
+.welcome p{font-size:15px;color:var(--muted);line-height:1.7;max-width:520px;font-style:italic;}
+.section-title{font-family:var(--mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.set-group{margin-bottom:3rem;}
+.set-group-title{font-size:22px;font-weight:600;letter-spacing:-0.02em;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:10px;}
+.book-group{margin-bottom:2rem;}
+.book-group-title{font-size:17px;font-weight:500;letter-spacing:-0.01em;margin-bottom:12px;color:var(--muted);}
+.chapter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+.chapter-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-decoration:none;color:var(--text);transition:background 0.15s,border-color 0.15s,transform 0.1s;}
+.chapter-card:hover{background:var(--surface2);border-color:var(--border2);transform:translateY(-1px);}
+.play-icon{width:32px;height:32px;background:var(--accent-glow);border:1px solid rgba(200,169,110,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:var(--accent);}
+.card-chapter{font-size:14px;font-weight:500;}
+.card-book{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:0.06em;display:flex;align-items:center;gap:6px;}
+.card-duration{color:var(--accent);opacity:0.8;}
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--muted);}
+.empty-state .big{font-size:40px;margin-bottom:16px;opacity:0.4;}
+.empty-state h3{font-size:18px;font-weight:500;margin-bottom:8px;color:var(--text);}
+@media(max-width:640px){.sidebar{display:none;}.main{padding:1.5rem 1rem;}.chapter-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-header"><div class="app-title">Scripture Reader</div><div class="app-sub">Audio · Text · Sync</div></div>
+    <div class="book-nav">${sidebarItems||'<p style="padding:16px 20px;font-size:13px;color:var(--muted);font-style:italic;">No chapters yet.</p>'}</div>
+  </nav>
+  <main class="main">
+    <div class="welcome"><h2>Library</h2><p>Select a scripture set, book, and chapter to begin listening and reading along.</p></div>
+    <div class="section-title">Scripture Library</div>
+    <div>${chapters.length ? gridItems : '<div class="empty-state"><div class="big">📖</div><h3>No chapters yet</h3></div>'}</div>
+  </main>
+</div>
+</body>
+</html>`;
+}
+
+// ── EXPORT LOG ────────────────────────────────────────────────────────────────
+const LOG_KEY = 'scripture_export_log_v2';
+const CSV_HEADERS = ['Timestamp','Scripture Set','Book','Chapter','MP3 URL','Avg Chars Per Line','Seconds Used','Chars Per Unit','Audio File','Text File'];
+
+function csvCell(val) {
+  const s = String(val === null || val === undefined ? '' : val);
+  return `"${s.replace(/"/g, '""')}"`;
+}
+
+function loadLogRecords() {
+  try {
+    const raw = localStorage.getItem(LOG_KEY);
+    if(!raw) return [];
+    const parsed = JSON.parse(raw);
+    // Already a JSON array — return as-is
+    if(Array.isArray(parsed)) return parsed;
+    return [];
+  } catch(e) {
+    // Old pipe-delimited string format — migrate each line to an object
+    try {
+      const raw = localStorage.getItem(LOG_KEY) || '';
+      const records = raw.split('\n').filter(Boolean).map(line => {
+        const parts = line.split(' | ');
+        return {
+          timestamp:    parts[0] || '',
+          scriptureSet: parts[1] || '',
+          book:         parts[2] || '',
+          chapter:      parts[3] || '',
+          audioSrc:     parts[4] || '',
+          avgCharsLine: parts[5] ? parts[5].replace('avg_chars:','') : '',
+          secondsUsed:  parts[6] ? parts[6].split('s/')[0].replace('rate:','') : '',
+          charsPerUnit: parts[6] ? parts[6].split('s/')[1]?.replace('c','') : '',
+          audioFile:    parts[7] ? parts[7].replace('audio:','') : '',
+          textFile:     parts[8] ? parts[8].replace('text:','') : ''
+        };
+      });
+      // Save migrated records back as JSON
+      localStorage.setItem(LOG_KEY, JSON.stringify(records));
+      return records;
+    } catch(e2) {
+      return [];
+    }
+  }
+}
+
+function appendExportLog(entry) {
+  const records = loadLogRecords();
+  const avgChars = rawSegments ? Math.round(rawSegments.reduce((s,t)=>s+countableChars(t),0)/rawSegments.length) : 0;
+  const now = new Date().toISOString().replace('T',' ').substring(0,19);
+  records.push({
+    timestamp:    now,
+    scriptureSet: entry.scriptureSet,
+    book:         entry.book,
+    chapter:      entry.chapter,
+    audioSrc:     entry.audioSrc,
+    avgCharsLine: avgChars,
+    secondsUsed:  SECS_PER_UNIT,
+    charsPerUnit: CHARS_PER_UNIT,
+    audioFile:    loadedAudioName || '(none)',
+    textFile:     loadedTextName  || '(pasted)'
+  });
+  localStorage.setItem(LOG_KEY, JSON.stringify(records));
+}
+
+function buildCsv() {
+  const records = loadLogRecords();
+  const rows = records.map(r => [
+    r.timestamp, r.scriptureSet, r.book, r.chapter,
+    r.audioSrc, r.avgCharsLine, r.secondsUsed, r.charsPerUnit,
+    r.audioFile, r.textFile
+  ].map(csvCell).join(','));
+  return CSV_HEADERS.map(csvCell).join(',') + '\n' + rows.join('\n');
+}
+
+$('download-log-btn').addEventListener('click', () => {
+  const records = loadLogRecords();
+  if(!records.length){ alert('No exports logged yet.'); return; }
+  downloadText('scripture_export_log.csv', buildCsv());
+});
+
+// ── EXPORT ────────────────────────────────────────────────────────────────────
+function getExportFields() {
+  return {
+    scriptureSet: $('exp-scripture-set').value.trim() || 'General',
+    book:         $('exp-book').value.trim()           || 'Unknown',
+    chapter:      $('exp-chapter').value.trim()        || 'Chapter',
+    audioPath:    $('exp-audio-path').value.trim()
+  };
+}
+
+$('export-btn').addEventListener('click',()=>{
+  if(!lyrics.length){alert('Load a transcript first.');return;}
+  const {scriptureSet, book, chapter, audioPath} = getExportFields();
+  if(!audioPath){alert('Please enter the Archive.org MP3 URL.');return;}
+
+  const lyricsJSON = JSON.stringify(lyrics);
+  const fileSlug = (scriptureSet+'-'+book+'-'+chapter).toLowerCase().replace(/[^a-z0-9]+/g,'-');
+
+  const chapterHtml=`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>${book} — ${chapter}</title>
+<link rel="stylesheet" href="../chapter_player.css">
+</head>
+<body>
+<script>
+window.CHAPTER_DATA = {
+  scriptureSet: ${JSON.stringify(scriptureSet)},
+  book: ${JSON.stringify(book)},
+  chapter: ${JSON.stringify(chapter)},
+  audioSrc: ${JSON.stringify(audioPath)},
+  lyrics: ${lyricsJSON}
+};
+<\/script>
+<script src="../chapter_player.js"><\/script>
+</body>
+</html>`;
+
+  download(`${fileSlug}.html`, chapterHtml);
+
+  const lib = loadLibrary();
+  const audioDur = (audio.duration && isFinite(audio.duration)) ? Math.round(audio.duration) : 0;
+  const entry = {scriptureSet, book, chapter, file:`chapterfiles/${fileSlug}.html`, audioSrc:audioPath, duration:audioDur};
+  const existing = lib.findIndex(c=>c.scriptureSet===scriptureSet && c.book===book && c.chapter===chapter);
+  if(existing>=0) lib[existing]=entry; else lib.push(entry);
+  saveLibrary(lib);
+
+  download('index.html', buildIndexHtml(lib));
+  appendExportLog(entry);
+
+  const status=$('export-status');
+  status.style.display='block';
+  status.innerHTML=`✓ Exported <strong>${fileSlug}.html</strong> → <strong>chapterfiles/</strong> · fresh <strong>index.html</strong> → root. Export logged.`;
+});
+
+$('copy-json-btn').addEventListener('click',()=>{
+  if(!lyrics.length){alert('Load a transcript first.');return;}
+  const {scriptureSet, book, chapter, audioPath} = getExportFields();
+  const fileSlug=(scriptureSet+'-'+book+'-'+chapter).toLowerCase().replace(/[^a-z0-9]+/g,'-');
+  const entry={scriptureSet,book,chapter,file:`chapterfiles/${fileSlug}.html`,audioSrc:audioPath};
+  navigator.clipboard.writeText(JSON.stringify(entry,null,2)).then(()=>{
+    $('export-status').style.display='block';
+    $('export-status').textContent=`✓ Chapter JSON copied to clipboard.`;
+  });
+});
+
+$('save-json-btn').addEventListener('click',()=>{
+  if(!lyrics.length){alert('Load a transcript first.');return;}
+  const {scriptureSet, book, chapter, audioPath} = getExportFields();
+  const fileSlug=(scriptureSet+'-'+book+'-'+chapter).toLowerCase().replace(/[^a-z0-9]+/g,'-');
+  const entry={scriptureSet,book,chapter,file:`chapterfiles/${fileSlug}.html`,audioSrc:audioPath};
+  downloadText(`${fileSlug}.json`, JSON.stringify(entry,null,2));
+  $('export-status').style.display='block';
+  $('export-status').textContent=`✓ Saved ${fileSlug}.json.`;
+});
+
+function download(filename,content){
+  const a=document.createElement('a');
+  a.href='data:text/html;charset=utf-8,'+encodeURIComponent(content);
+  a.download=filename; a.click();
+}
+function downloadText(filename,content){
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(content);
+  a.download=filename; a.click();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,601 @@
+<!-- PRODUCTION VERSION 3 — scripture_reader.html (Admin) -->
+<!-- Rollback to v2: replace with scripture_reader.html.v2.bak -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scripture Reader — Admin</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#0e0d0b; --surface:#161512; --surface2:#1d1c18;
+    --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.12);
+    --text:#ede8df; --muted:#6e6a62; --accent:#c8a96e;
+    --accent-glow:rgba(200,169,110,0.12); --danger:#e06060;
+    --radius:10px; --font:'Lora',Georgia,serif; --mono:'IBM Plex Mono',monospace;
+  }
+  body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; }
+  .layout { display:flex; min-height:100vh; }
+
+  /* Sidebar */
+  .sidebar { width:260px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; }
+  .sidebar-header { padding:22px 20px 16px; border-bottom:1px solid var(--border); }
+  .app-title { font-size:18px; font-weight:600; letter-spacing:-0.01em; line-height:1.2; }
+  .app-sub { font-family:var(--mono); font-size:10px; color:var(--accent); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px; }
+  .book-nav { padding:8px 0; flex:1; }
+
+  /* 3-level nav */
+  .set-section { margin-bottom:2px; }
+  .set-label { display:flex; align-items:center; justify-content:space-between; padding:9px 20px; font-size:14px; font-weight:600; color:var(--text); cursor:pointer; user-select:none; background:rgba(255,255,255,0.03); }
+  .set-label:hover { color:var(--accent); }
+  .set-list { display:none; }
+  .set-list.open { display:block; }
+  .book-section { }
+  .book-label { display:flex; align-items:center; justify-content:space-between; padding:7px 20px 7px 32px; font-size:13px; font-weight:500; color:var(--muted); cursor:pointer; user-select:none; }
+  .book-label:hover { color:var(--text); }
+  .chapter-list { display:none; padding:0 0 4px; }
+  .chapter-list.open { display:block; }
+  .chapter-item { display:block; padding:5px 20px 5px 44px; font-size:12px; color:var(--muted); text-decoration:none; font-family:var(--mono); }
+  .chapter-item:hover { color:var(--text); background:rgba(255,255,255,0.03); }
+  .arrow { font-size:10px; transition:transform 0.2s; opacity:0.4; font-family:var(--mono); }
+  .set-label.open .arrow, .book-label.open .arrow { transform:rotate(90deg); }
+
+  /* Main */
+  .main { flex:1; padding:2.5rem 2.5rem; max-width:900px; }
+  .page-header { display:flex; align-items:baseline; gap:12px; margin-bottom:2rem; flex-wrap:wrap; }
+  .page-header h2 { font-size:24px; font-weight:600; letter-spacing:-0.02em; }
+  .admin-badge { font-family:var(--mono); font-size:10px; color:var(--accent); background:var(--accent-glow); border:1px solid rgba(200,169,110,0.25); padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.06em; }
+
+  .section-title { font-family:var(--mono); font-size:11px; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+
+  /* Set group */
+  .set-group { margin-bottom:2.5rem; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+  .set-group-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.02); }
+  .set-group-title { font-size:18px; font-weight:600; letter-spacing:-0.01em; }
+  .set-group-body { padding:16px 18px; }
+
+  /* Book group */
+  .book-group { margin-bottom:20px; }
+  .book-group-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .book-group-title { font-size:15px; font-weight:500; color:var(--muted); }
+
+  /* Chapter grid */
+  .chapter-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:8px; }
+  .chapter-card { display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 14px; }
+  .chapter-card a { text-decoration:none; color:var(--text); font-size:14px; font-weight:500; flex:1; }
+  .chapter-card a:hover { color:var(--accent); }
+  .chapter-card .del-ch { font-size:11px; padding:3px 8px; color:var(--danger); border:1px solid rgba(224,96,96,0.25); border-radius:4px; cursor:pointer; background:transparent; font-family:var(--mono); flex-shrink:0; }
+  .chapter-card .del-ch:hover { background:rgba(224,96,96,0.1); }
+
+  /* Delete row buttons */
+  .del-btn { font-size:11px; font-family:var(--mono); padding:3px 10px; border-radius:4px; cursor:pointer; color:var(--danger); border:1px solid rgba(224,96,96,0.25); background:transparent; }
+  .del-btn:hover { background:rgba(224,96,96,0.1); }
+
+  /* Empty */
+  .empty-state { text-align:center; padding:4rem 2rem; color:var(--muted); }
+  .empty-state .big { font-size:40px; margin-bottom:16px; opacity:0.4; }
+  .empty-state h3 { font-size:18px; font-weight:500; margin-bottom:8px; color:var(--text); }
+  .empty-state p { font-size:14px; line-height:1.7; max-width:400px; margin:0 auto; font-style:italic; }
+  .empty-state code { font-family:var(--mono); font-size:12px; background:var(--surface2); padding:2px 6px; border-radius:4px; color:var(--accent); }
+
+  /* Add panel */
+  .add-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; margin-top:1.5rem; }
+  .add-panel summary { font-family:var(--mono); font-size:12px; color:var(--muted); cursor:pointer; text-transform:uppercase; letter-spacing:0.08em; list-style:none; }
+  .add-panel summary::-webkit-details-marker { display:none; }
+  .add-panel summary::before { content:'+ '; color:var(--accent); }
+  .add-panel[open] summary::before { content:'− '; }
+  .add-panel .fields { margin-top:16px; display:flex; flex-direction:column; gap:10px; }
+  .add-panel label { font-size:12px; color:var(--muted); font-family:var(--mono); display:block; margin-bottom:4px; }
+  .add-panel input { width:100%; background:var(--surface2); border:1px solid var(--border2); color:var(--text); border-radius:6px; padding:7px 10px; font-family:var(--mono); font-size:12px; }
+  .add-panel input:focus { outline:none; border-color:var(--accent); }
+  .add-panel .btn-row { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  textarea.paste-area { width:100%; height:110px; font-family:var(--mono); font-size:11px; background:var(--surface2); border:1px solid var(--border2); color:var(--text); border-radius:6px; padding:10px; resize:vertical; line-height:1.6; }
+  textarea.paste-area:focus { outline:none; border-color:var(--accent); }
+  #admin-status { display:none; font-size:12px; font-family:var(--mono); padding:8px 12px; border-radius:6px; margin-top:8px; line-height:1.6; color:var(--accent); background:rgba(200,169,110,0.07); border:1px solid rgba(200,169,110,0.2); }
+
+  button { background:transparent; border:1px solid var(--border2); color:var(--text); border-radius:6px; padding:7px 14px; font-size:13px; cursor:pointer; font-family:var(--mono); transition:background 0.12s,border-color 0.12s; white-space:nowrap; }
+  button:hover { background:var(--surface2); }
+  button.accent { background:var(--accent); color:#0e0d0b; border-color:var(--accent); font-weight:500; }
+  button.accent:hover { background:#d9bb80; }
+  button.export-index { color:#60c8f0; border-color:rgba(96,200,240,0.3); background:rgba(96,200,240,0.07); }
+  button.export-index:hover { background:rgba(96,200,240,0.14); }
+  button.danger { color:var(--danger); border-color:rgba(224,96,96,0.3); }
+  button.danger:hover { background:rgba(224,96,96,0.08); }
+
+  #toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--accent); color:#0e0d0b; font-family:var(--mono); font-size:12px; padding:8px 18px; border-radius:100px; opacity:0; pointer-events:none; transition:opacity 0.3s; white-space:nowrap; }
+  #toast.show { opacity:1; }
+
+  @media(max-width:640px) { .sidebar { display:none; } .main { padding:1.5rem 1rem; } .chapter-grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="app-title">Scripture Reader</div>
+      <div class="app-sub">Admin — v3</div>
+    </div>
+    <div class="book-nav" id="book-nav"></div>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <h2>Library</h2>
+      <span class="admin-badge">Admin</span>
+    </div>
+
+    <div class="section-title">Scripture Library</div>
+    <div id="chapter-grid-area"></div>
+
+    <!-- Add chapter -->
+    <details class="add-panel" id="add-panel">
+      <summary>Add chapter</summary>
+      <div class="fields">
+
+        <!-- Restore from chapter HTML file -->
+        <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:14px 16px;">
+          <div style="font-size:12px;font-weight:500;color:var(--accent);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">↩ Restore from chapter HTML file</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.6;">
+            Drop or select a previously exported chapter HTML file to restore it to the library without re-exporting from the sync player.
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <input type="file" id="restore-file-input" accept=".html" style="display:none;">
+            <button id="restore-pick-btn" style="font-size:12px;">📂 Choose chapter HTML file</button>
+            <span id="restore-status" style="font-size:12px;font-family:var(--mono);color:var(--muted);"></span>
+          </div>
+        </div>
+
+        <div style="font-size:11px;color:var(--muted);font-family:var(--mono);text-align:center;letter-spacing:0.06em;">— OR ADD MANUALLY —</div>
+
+        <div>
+          <label>Scripture Set</label>
+          <input type="text" id="add-scripture-set" placeholder="e.g. Book of Mormon, KJV Bible">
+        </div>
+        <div>
+          <label>Book name</label>
+          <input type="text" id="add-book" placeholder="e.g. 1 Nephi">
+        </div>
+        <div>
+          <label>Chapter name</label>
+          <input type="text" id="add-chapter" placeholder="e.g. Chapter 1">
+        </div>
+        <div>
+          <label>Chapter HTML file</label>
+          <input type="text" id="add-file" placeholder="e.g. book-of-mormon-1-nephi-chapter-1.html">
+        </div>
+        <div>
+          <label>Or paste exported chapter JSON</label>
+          <textarea class="paste-area" id="paste-json" placeholder='{"scriptureSet":"Book of Mormon","book":"1 Nephi","chapter":"Chapter 1","file":"chapterfiles/book-of-mormon-1-nephi-chapter-1.html","audioSrc":"https://archive.org/download/..."}'></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="accent" id="add-btn">Add chapter</button>
+          <button class="export-index" id="export-index-btn">⬇ Export index.html</button>
+          <button class="danger" id="clear-all-btn">Clear all</button>
+        </div>
+        <div id="admin-status"></div>
+      </div>
+    </details>
+  </main>
+</div>
+<div id="toast"></div>
+
+<script>
+const STORE_KEY = 'scripture_reader_chapters_v2';
+
+function loadChapters() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORE_KEY)) || [];
+    // Migrate textfiles/ → chapterfiles/
+    const migrated = raw.map(c => ({
+      ...c,
+      file: c.file
+        ? c.file.replace(/^textfiles\//,'chapterfiles/').replace(/^(?!chapterfiles\/)(.+\.html)$/,'chapterfiles/$1')
+        : c.file
+    }));
+    const changed = migrated.some((c,i) => c.file !== raw[i].file);
+    if(changed) localStorage.setItem(STORE_KEY, JSON.stringify(migrated));
+    return migrated;
+  } catch { return []; }
+}
+
+function sortChapters(arr) {
+  // Canonical book order by scripture set.
+  // Books not in the list fall back to numeric prefix (1 Nephi → 1) then name.
+  const BOOK_ORDER = {
+    'Book of Mormon': [
+      '1 Nephi','2 Nephi','Jacob','Enos','Jarom','Omni','Words of Mormon',
+      'Mosiah','Alma','Helaman','3 Nephi','4 Nephi','Mormon','Ether','Moroni'
+    ],
+    'Doctrine and Covenants': [],  // sections are numeric — fallback handles them
+    'Pearl of Great Price': [
+      'Moses','Abraham','Joseph Smith—Matthew','Joseph Smith—History',
+      'Articles of Faith'
+    ],
+    'Old Testament': [
+      'Genesis','Exodus','Leviticus','Numbers','Deuteronomy','Joshua','Judges',
+      'Ruth','1 Samuel','2 Samuel','1 Kings','2 Kings','1 Chronicles',
+      '2 Chronicles','Ezra','Nehemiah','Esther','Job','Psalms','Proverbs',
+      'Ecclesiastes','Song of Solomon','Isaiah','Jeremiah','Lamentations',
+      'Ezekiel','Daniel','Hosea','Joel','Amos','Obadiah','Jonah','Micah',
+      'Nahum','Habakkuk','Zephaniah','Haggai','Zechariah','Malachi'
+    ],
+    'New Testament': [
+      'Matthew','Mark','Luke','John','Acts','Romans','1 Corinthians',
+      '2 Corinthians','Galatians','Ephesians','Philippians','Colossians',
+      '1 Thessalonians','2 Thessalonians','1 Timothy','2 Timothy','Titus',
+      'Philemon','Hebrews','James','1 Peter','2 Peter','1 John','2 John',
+      '3 John','Jude','Revelation'
+    ],
+    // KJV aliases
+    'KJV Bible': [],   // falls through to OT/NT order via numeric prefix
+    'Bible': []
+  };
+
+  function bookIndex(scriptureSet, book) {
+    const list = BOOK_ORDER[scriptureSet] || [];
+    const idx = list.indexOf(book);
+    if(idx >= 0) return idx;
+    // Fallback: extract leading number (e.g. "1 Nephi" → 1, "Section 42" → 42)
+    const num = parseInt((book||'').match(/^\d+/)?.[0] ?? '9999');
+    return 10000 + num;  // put unrecognized books after known ones
+  }
+
+  return arr.slice().sort((a, b) => {
+    // 1. Scripture Set alphabetically
+    const ss = (a.scriptureSet||'').localeCompare(b.scriptureSet||'');
+    if(ss !== 0) return ss;
+
+    // 2. Book by canonical order
+    const bi = bookIndex(a.scriptureSet, a.book) - bookIndex(b.scriptureSet, b.book);
+    if(bi !== 0) return bi;
+
+    // 3. Chapter numerically
+    const numA = parseInt((a.chapter||'').match(/\d+/)?.[0] || '0');
+    const numB = parseInt((b.chapter||'').match(/\d+/)?.[0] || '0');
+    if(numA !== numB) return numA - numB;
+
+    // 4. Chapter name alphabetically as final tiebreaker
+    return (a.chapter||'').localeCompare(b.chapter||'');
+  });
+}
+
+function saveChapters(arr) {
+  const sorted = sortChapters(arr);
+  localStorage.setItem(STORE_KEY, JSON.stringify(sorted));
+  return sorted;
+}
+let chapters = sortChapters(loadChapters());
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function slug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g,'-'); }
+
+function groupChapters(arr) {
+  const sets = {};
+  arr.forEach(c => {
+    const ss = c.scriptureSet || 'General';
+    const bk = c.book || 'Unknown';
+    if(!sets[ss]) sets[ss]={};
+    if(!sets[ss][bk]) sets[ss][bk]=[];
+    sets[ss][bk].push(c);
+  });
+  return sets;
+}
+
+function renderSidebar() {
+  const nav = document.getElementById('book-nav');
+  const sets = groupChapters(chapters);
+  if(!Object.keys(sets).length) { nav.innerHTML='<p style="padding:16px 20px;font-size:13px;color:var(--muted);font-style:italic;">No chapters yet.</p>'; return; }
+  nav.innerHTML = Object.entries(sets).map(([ss, books]) => `
+    <div class="set-section">
+      <div class="set-label" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">${esc(ss)} <span class="arrow">▶</span></div>
+      <div class="set-list">${Object.entries(books).map(([bk, chs]) => `
+        <div class="book-section">
+          <div class="book-label" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">— ${esc(bk)} <span class="arrow">▶</span></div>
+          <div class="chapter-list">${chs.map(ch=>`<a class="chapter-item" href="${ch.file}">${esc(ch.chapter)}</a>`).join('')}</div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function renderMain() {
+  const area = document.getElementById('chapter-grid-area');
+  const sets = groupChapters(chapters);
+  if(!Object.keys(sets).length) {
+    area.innerHTML = `<div class="empty-state"><div class="big">📖</div><h3>No chapters yet</h3><p>Use <code>audio_sync_player.html</code> to export chapters, then add them here.</p></div>`;
+    return;
+  }
+  area.innerHTML = Object.entries(sets).map(([ss, books]) => `
+    <div class="set-group">
+      <div class="set-group-header">
+        <div class="set-group-title">${esc(ss)}</div>
+        <button class="del-btn" data-action="del-set" data-ss="${esc(ss)}">Remove set</button>
+      </div>
+      <div class="set-group-body">
+        ${Object.entries(books).map(([bk, chs]) => `
+          <div class="book-group">
+            <div class="book-group-header">
+              <div class="book-group-title">${esc(bk)}</div>
+              <button class="del-btn" data-action="del-book" data-ss="${esc(ss)}" data-bk="${esc(bk)}">Remove book</button>
+            </div>
+            <div class="chapter-grid">
+              ${chs.map(ch=>`
+                <div class="chapter-card">
+                  <a href="${ch.file}">${esc(ch.chapter)}</a>
+                  <button class="del-ch" data-action="del-chapter" data-ss="${esc(ss)}" data-bk="${esc(bk)}" data-ch="${esc(ch.chapter)}">✕</button>
+                </div>`).join('')}
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+
+  // Event delegation — one listener on the container handles all delete buttons
+  area.addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if(!btn) return;
+    const action = btn.dataset.action;
+    const ss = btn.dataset.ss;
+    const bk = btn.dataset.bk;
+    const ch = btn.dataset.ch;
+    if(action === 'del-set')     { deleteSet(ss); }
+    if(action === 'del-book')    { deleteBook(ss, bk); }
+    if(action === 'del-chapter') { deleteChapter(ss, bk, ch); }
+  });
+}
+
+function render() { renderSidebar(); renderMain(); }
+
+// ── Selective delete ──────────────────────────────────────────────────────────
+function deleteChapter(ss, bk, ch) {
+  if(!confirm(`Remove "${ch}" from ${bk}?`)) return;
+  chapters = saveChapters(chapters.filter(c => !(c.scriptureSet===ss && c.book===bk && c.chapter===ch)));
+  render(); toast(`Removed "${ch}"`);
+}
+function deleteBook(ss, bk) {
+  if(!confirm(`Remove all chapters from "${bk}"?`)) return;
+  chapters = saveChapters(chapters.filter(c => !(c.scriptureSet===ss && c.book===bk)));
+  render(); toast(`Removed "${bk}"`);
+}
+function deleteSet(ss) {
+  if(!confirm(`Remove all books and chapters in "${ss}"?`)) return;
+  chapters = saveChapters(chapters.filter(c => c.scriptureSet!==ss));
+  render(); toast(`Removed "${ss}"`);
+}
+
+// ── Build index.html ──────────────────────────────────────────────────────────
+function buildIndexHtml(chs) {
+  const sets = groupChapters(chs);
+  const sidebarItems = Object.entries(sets).map(([ss, books]) => `
+    <div class="set-section">
+      <div class="set-label" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">${esc(ss)} <span class="arrow">▶</span></div>
+      <div class="set-list">${Object.entries(books).map(([bk, bkchs]) => `
+        <div class="book-section">
+          <div class="book-label" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">— ${esc(bk)} <span class="arrow">▶</span></div>
+          <div class="chapter-list">${bkchs.map(ch=>`<a class="chapter-item" href="${ch.file}">${esc(ch.chapter)}</a>`).join('')}</div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+
+  const gridItems = Object.entries(sets).map(([ss, books]) => `
+    <div class="set-group">
+      <div class="set-group-title">${esc(ss)}</div>
+      ${Object.entries(books).map(([bk, bkchs]) => `
+        <div class="book-group">
+          <div class="book-group-title">${esc(bk)}</div>
+          <div class="chapter-grid">${bkchs.map(ch=>`
+            <a class="chapter-card" href="${ch.file}">
+              <div class="play-icon">▶</div>
+              <div class="card-text"><div class="card-chapter">${esc(ch.chapter)}</div><div class="card-book">${esc(bk)}</div></div>
+            </a>`).join('')}
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Scripture Reader</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0e0d0b;--surface:#161512;--surface2:#1d1c18;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--text:#ede8df;--muted:#6e6a62;--accent:#c8a96e;--accent-glow:rgba(200,169,110,0.12);--radius:10px;--font:'Lora',Georgia,serif;--mono:'IBM Plex Mono',monospace;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;}
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sidebar-header{padding:22px 20px 16px;border-bottom:1px solid var(--border);}
+.app-title{font-size:18px;font-weight:600;letter-spacing:-0.01em;line-height:1.2;}
+.app-sub{font-family:var(--mono);font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;}
+.book-nav{padding:8px 0;flex:1;}
+.set-section{margin-bottom:2px;}
+.set-label{display:flex;align-items:center;justify-content:space-between;padding:9px 20px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;user-select:none;background:rgba(255,255,255,0.03);}
+.set-label:hover{color:var(--accent);}
+.set-list{display:none;}
+.set-list.open{display:block;}
+.book-label{display:flex;align-items:center;justify-content:space-between;padding:7px 20px 7px 32px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;user-select:none;}
+.book-label:hover{color:var(--text);}
+.chapter-list{display:none;padding:0 0 4px;}
+.chapter-list.open{display:block;}
+.chapter-item{display:block;padding:5px 20px 5px 44px;font-size:12px;color:var(--muted);text-decoration:none;font-family:var(--mono);}
+.chapter-item:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+.arrow{font-size:10px;transition:transform 0.2s;opacity:0.4;font-family:var(--mono);}
+.set-label.open .arrow,.book-label.open .arrow{transform:rotate(90deg);}
+.main{flex:1;padding:3rem 2.5rem;max-width:860px;}
+.welcome{margin-bottom:3rem;}
+.welcome h2{font-size:28px;font-weight:600;letter-spacing:-0.02em;margin-bottom:8px;}
+.welcome p{font-size:15px;color:var(--muted);line-height:1.7;max-width:520px;font-style:italic;}
+.section-title{font-family:var(--mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.set-group{margin-bottom:3rem;}
+.set-group-title{font-size:22px;font-weight:600;letter-spacing:-0.02em;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:10px;}
+.book-group{margin-bottom:2rem;}
+.book-group-title{font-size:17px;font-weight:500;letter-spacing:-0.01em;margin-bottom:12px;color:var(--muted);}
+.chapter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+.chapter-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-decoration:none;color:var(--text);transition:background 0.15s,border-color 0.15s,transform 0.1s;}
+.chapter-card:hover{background:var(--surface2);border-color:var(--border2);transform:translateY(-1px);}
+.play-icon{width:32px;height:32px;background:var(--accent-glow);border:1px solid rgba(200,169,110,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:var(--accent);}
+.card-chapter{font-size:14px;font-weight:500;}
+.card-book{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:0.06em;}
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--muted);}
+.empty-state .big{font-size:40px;margin-bottom:16px;opacity:0.4;}
+.empty-state h3{font-size:18px;font-weight:500;margin-bottom:8px;color:var(--text);}
+@media(max-width:640px){.sidebar{display:none;}.main{padding:1.5rem 1rem;}.chapter-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-header"><div class="app-title">Scripture Reader</div><div class="app-sub">Audio · Text · Sync</div></div>
+    <div class="book-nav">${sidebarItems||'<p style="padding:16px 20px;font-size:13px;color:var(--muted);font-style:italic;">No chapters yet.</p>'}</div>
+  </nav>
+  <main class="main">
+    <div class="welcome"><h2>Library</h2><p>Select a scripture set, book, and chapter to begin listening and reading along.</p></div>
+    <div class="section-title">Scripture Library</div>
+    <div>${chs.length ? gridItems : '<div class="empty-state"><div class="big">📖</div><h3>No chapters yet</h3></div>'}</div>
+  </main>
+</div>
+</body>
+</html>`;
+}
+
+function downloadHtml(filename, content) {
+  const a = document.createElement('a');
+  a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(content);
+  a.download = filename; a.click();
+}
+
+// ── Restore from chapter HTML file ───────────────────────────────────────────
+document.getElementById('restore-pick-btn').addEventListener('click', () => {
+  document.getElementById('restore-file-input').click();
+});
+
+document.getElementById('restore-file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const statusEl   = document.getElementById('restore-status');
+  const adminStatus = document.getElementById('admin-status');
+  statusEl.style.color = 'var(--muted)';
+  statusEl.textContent = `Reading ${file.name}…`;
+
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const html = ev.target.result;
+
+      // Pull the inline script block that sets window.CHAPTER_DATA
+      const scriptMatch = html.match(/<script>\s*(window\.CHAPTER_DATA[\s\S]*?)<\/script>/);
+      if(!scriptMatch) throw new Error('No CHAPTER_DATA found — make sure this is an exported chapter HTML file.');
+
+      const scriptBody = scriptMatch[1];
+
+      // Use Function constructor to execute just that script in an isolated scope
+      // This safely handles the full lyrics array without regex/JSON parsing
+      let data;
+      const sandboxWindow = {};
+      try {
+        const fn = new Function('window', scriptBody);
+        fn(sandboxWindow);
+        data = sandboxWindow.CHAPTER_DATA;
+      } catch(execErr) {
+        throw new Error(`Could not read chapter data: ${execErr.message}`);
+      }
+
+      if(!data || !data.book || !data.chapter) {
+        throw new Error('File is missing book or chapter fields — may not be a valid chapter file.');
+      }
+
+      const fileName = file.name;
+      const filePath = fileName.startsWith('chapterfiles/') ? fileName : `chapterfiles/${fileName}`;
+
+      const entry = {
+        scriptureSet: data.scriptureSet || 'General',
+        book:         data.book,
+        chapter:      data.chapter,
+        file:         filePath,
+        audioSrc:     data.audioSrc || ''
+      };
+
+      const idx = chapters.findIndex(c =>
+        c.scriptureSet === entry.scriptureSet &&
+        c.book         === entry.book &&
+        c.chapter      === entry.chapter
+      );
+      if(idx >= 0) chapters[idx] = entry; else chapters.push(entry);
+      chapters = saveChapters(chapters);
+      render();
+
+      statusEl.style.color = 'var(--accent)';
+      statusEl.textContent = `✓ Restored "${entry.chapter}" (${entry.scriptureSet} › ${entry.book})`;
+      adminStatus.style.display = 'block';
+      adminStatus.textContent   = `✓ Restored "${entry.chapter}" from ${fileName} — click Export index.html to publish.`;
+
+    } catch(err) {
+      statusEl.style.color    = '#e06060';
+      statusEl.textContent    = `✗ Could not restore: ${err.message}`;
+    }
+    e.target.value = ''; // reset so same file can be re-selected
+  };
+  reader.readAsText(file);
+});
+
+// ── Add chapter ───────────────────────────────────────────────────────────────
+document.getElementById('add-btn').addEventListener('click', () => {
+  const pasteRaw = document.getElementById('paste-json').value.trim();
+  if(pasteRaw) {
+    try {
+      const entries = pasteRaw.startsWith('[') ? JSON.parse(pasteRaw) : [JSON.parse(pasteRaw)];
+      entries.forEach(e => {
+        if(e.book && e.chapter && e.file) {
+          const idx = chapters.findIndex(c=>c.scriptureSet===(e.scriptureSet||'General')&&c.book===e.book&&c.chapter===e.chapter);
+          if(idx>=0) chapters[idx]=e; else chapters.push(e);
+        }
+      });
+      chapters = saveChapters(chapters); render();
+      document.getElementById('paste-json').value = '';
+      toast(`Added ${entries.length} chapter(s)`);
+    } catch { toast('Invalid JSON'); }
+    return;
+  }
+  const ss    = document.getElementById('add-scripture-set').value.trim() || 'General';
+  const book  = document.getElementById('add-book').value.trim();
+  const ch    = document.getElementById('add-chapter').value.trim();
+  const file  = document.getElementById('add-file').value.trim();
+  if(!book||!ch||!file) { toast('Fill in book, chapter, and file'); return; }
+  const fullFile = file.startsWith('chapterfiles/') ? file : `chapterfiles/${file}`;
+  const idx = chapters.findIndex(c=>c.scriptureSet===ss&&c.book===book&&c.chapter===ch);
+  if(idx>=0) chapters[idx]={scriptureSet:ss,book,chapter:ch,file:fullFile};
+  else chapters.push({scriptureSet:ss,book,chapter:ch,file:fullFile});
+  chapters = saveChapters(chapters); render();
+  ['add-scripture-set','add-book','add-chapter','add-file'].forEach(id=>document.getElementById(id).value='');
+  toast(`Added "${ch}"`);
+  document.getElementById('add-panel').removeAttribute('open');
+});
+
+// ── Export index.html ─────────────────────────────────────────────────────────
+document.getElementById('export-index-btn').addEventListener('click', () => {
+  if(!chapters.length) { toast('No chapters to export yet.'); return; }
+  downloadHtml('index.html', buildIndexHtml(chapters));
+  const s = document.getElementById('admin-status');
+  s.style.display='block';
+  s.textContent=`✓ index.html exported with ${chapters.length} chapter(s) — upload to Netlify to publish.`;
+});
+
+// ── Clear all ─────────────────────────────────────────────────────────────────
+document.getElementById('clear-all-btn').addEventListener('click', () => {
+  if(!confirm('Remove ALL chapters from the library?')) return;
+  chapters = []; saveChapters(chapters); render(); toast('Library cleared');
+});
+
+render();
+</script>
+</body>
+</html>

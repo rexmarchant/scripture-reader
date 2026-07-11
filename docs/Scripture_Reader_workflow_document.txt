@@ -1,0 +1,194 @@
+**Scripture Reader Workflow**
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PHASE 1 — Generate SSML from scripture text
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Copy scripture text from source:
+  - Inspired Version of the Bible:       https://study.zionbound.com/
+  - Doctrine and Covenants:              https://study.zionbound.com/
+  - Restored Covenant Edition (BoM):     http://www.restoredgospel.com/Scriptures1/Shell_Read_TitlePage.php
+
+- Save as .txt file with naming convention: book-chapter.txt
+
+- Open ssml_converter.html (local admin tool)
+
+- Drag and drop the .txt file onto the drop zone
+
+- The tool calls the Claude API and auto-downloads two files:
+  - V1 SSML — verse numbers removed, used for Amazon Polly TTS
+  - V2 SSML — verse numbers retained, used for VTT Converter and Audio Sync Player
+
+- Save both files in the source files folder for the book they belong to
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PHASE 2a — Generate audio with Amazon Polly
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Sign into AWS: https://signin.aws.amazon.com/
+
+- Navigate to Amazon Polly:
+  https://us-east-1.console.aws.amazon.com/polly/home/SynthesizeSpeech?region=us-east-1#
+
+- Settings:
+  - Engine:   Neural
+  - Language: English, US
+  - Voice:    Patrick, Male
+  - SSML toggle: ON
+
+- Copy/paste the full content of the V1 SSML file into the text area
+
+- Select "Synthesize to S3"
+  - Use bucket: rex-file-storage-2026
+  - Click Synthesize and wait for the job to complete
+
+- Download the .mp3 file from S3 and save to the source files folder
+
+- Delete the file from "rex-file-storage-2026" to avoid ongoing storage charges
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PHASE 2b — Generate verse-aligned VTT with Whisper
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Open a Command Prompt (Windows) and run Whisper on the MP3:
+
+    python -m whisper "path\to\chapter.mp3" --model small --output_format vtt
+
+  NOTE: First run downloads the Whisper model (~460MB) — this only happens once.
+  The FP16/FP32 warning is harmless and can be ignored.
+
+- The output .vtt file is saved to the same folder as the MP3 (or your current
+  directory). Move it to the chapter's source files folder.
+
+- Open vtt_converter.html (local admin tool)
+
+- Drag and drop BOTH files onto the drop zone at the same time (or one at a time):
+  - V2 SSML file
+  - Whisper VTT file
+
+- Click Convert
+
+- Review the Conversion Summary:
+  - Word-matched: verses with exact Whisper timestamps (best accuracy)
+  - Interpolated: verses estimated between anchors (good accuracy)
+  - Low Confidence: verses with weak word matches — check these during playback
+
+- Click Download VTT and save the verse-aligned VTT to the source files folder
+
+- This verse-aligned VTT replaces the V2 SSML as input to the Audio Sync Player.
+  No manual timing adjustment is needed.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PHASE 3 — Upload MP3 to Archive.org
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Login to Archive.org (account linked to Google account):
+  https://archive.org/upload
+
+- Click Upload and drag/drop or choose the .mp3 file
+
+- Fill out the required information about the file
+
+- Click "Upload and Create Your Item" and wait until the page is created
+
+- Hit the play button and confirm the audio is the correct voice and chapter
+
+- Copy the direct download URL:
+  - In Download Options, right-click VBR MP3 → Copy Link Address
+  - URL must use /download/ not /details/:
+      WRONG:   https://archive.org/details/your-item
+      CORRECT: https://archive.org/download/your-item/your-file.mp3
+
+- Save the URL — it is needed in Phase 4
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PHASE 4 — Sync and export chapter player
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Open audio_sync_player.html (local admin tool)
+
+- Drag and drop both files onto the drop zone:
+  - The chapter .mp3 file
+  - The verse-aligned .vtt file from Phase 2b
+
+- The blue info bar will confirm the VTT is loaded with exact timestamps.
+  The timing rate controls are not needed and will be dimmed automatically.
+
+- Play back a few spots to verify verse highlighting follows the audio correctly
+
+- Fill out the Export Chapter Player section:
+  - Scripture Set:  e.g. Book of Mormon
+  - Book:           e.g. 1 Nephi
+  - Chapter:        e.g. Chapter 3
+  - MP3 URL:        paste the Archive.org /download/ URL from Phase 3
+
+- Click "Export Chapter Player"
+  - Two files download automatically:
+      book-of-mormon-1-nephi-chapter-3.html  → move to chapterfiles/ folder
+      index.html                              → replace root index.html
+
+- Click "Save JSON to file" and save the .json to the source files folder
+
+- Click "Download export log" (near the top of the page) and save locally
+  (do not deploy this file)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PHASE 5 — Verify locally
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Open your local index.html in a browser
+
+- Confirm the new chapter appears in the library
+
+- Open the chapter and verify the audio plays and verse highlighting
+  follows along correctly from the beginning
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PHASE 6 — Publish to Netlify
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Assemble the Scripture Reader publish folder with these files:
+    DEPLOY (include):
+      index.html
+      chapter_player.js
+      chapter_player.css
+      chapterfiles/*.html
+
+    DO NOT DEPLOY (local only):
+      admin.html
+      ssml_converter.html
+      vtt_converter.html
+      audio_sync_player.html
+      scripture_reader.html
+      scripture_export_log.csv
+      VERSION_LOG.txt
+      README.txt
+      *.bak
+
+- Login to Netlify: https://app.netlify.com/ (login with Google)
+
+- Open the project: bom-reader
+
+- Drag and drop the Scripture Reader folder to the Production deploys box
+
+- Wait for deploy, then launch and test at:
+  https://bom-reader.netlify.app/index.html
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ADMIN TOOLS REFERENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  admin.html             Hub — links to all tools and full workflow steps
+  ssml_converter.html    Phase 1 — txt → V1 + V2 SSML (uses Claude API)
+  vtt_converter.html     Phase 2b — V2 SSML + Whisper VTT → verse-aligned VTT
+  audio_sync_player.html Phase 4 — MP3 + VTT → chapter HTML export
+  scripture_reader.html  Library manager — add/remove chapters, export index
+
+All admin tools are local HTML files. Open in any browser. Do not deploy to Netlify.

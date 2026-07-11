@@ -1,0 +1,242 @@
+# Scripture Reader — Version Log
+# Site: https://bom-reader.netlify.app
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PRODUCTION VERSION 5 — 2026-06-05  ← CURRENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Status: STABLE
+
+Change: New admin toolchain — automated SSML conversion and
+        verse-accurate VTT timing via Whisper transcription.
+        Audio Sync Player updated for timed format support.
+
+New files (admin only — never deploy):
+  ssml_converter.html     Phase 1 — drag .txt → auto-downloads V1 + V2 SSML
+  vtt_converter.html      Phase 2b — V2 SSML + Whisper VTT → verse-aligned VTT
+  admin.html              Hub — links all tools, full workflow, deploy checklist
+
+Changed files (v4 → v5):
+  audio_sync_player.html  — updated for timed format (VTT/LRC/SRT) support
+
+No changes to deployed files:
+  chapter_player.js, chapter_player.css, index.html, chapterfiles/*.html
+  are all unchanged from v4. No Netlify redeploy needed.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  VERSION 5 — NEW FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ssml_converter.html (new):
+  - Drag-and-drop .txt scripture file
+  - Calls Claude API to generate both SSML variants
+  - Auto-downloads V1 SSML (verse numbers stripped — for Amazon Polly)
+  - Auto-downloads V2 SSML (verse numbers retained — for VTT Converter)
+  - Naming convention compliant filenames (e.g. 1-nephi-chapter-3-v1.ssml)
+
+vtt_converter.html (new):
+  - Accepts V2 SSML + Whisper VTT (drop both at once or one at a time)
+  - Two-pass verse alignment engine:
+      Pass 1: word-stream matching — flattens all VTT cues into a single
+              word array with sub-cue interpolated timestamps; matches
+              each verse's anchor words forward through the stream;
+              pacing sanity check rejects implausible timestamp jumps
+      Pass 2: interpolation — verses that couldn't be matched get
+              timestamps distributed proportionally by character count
+              between surrounding word-matched anchors
+      Pass 3: deduplication — ensures every verse has a strictly later
+              timestamp than the previous (minimum 0.1s gap)
+  - Chapter title (e.g. "First Nephi, Chapter 3") extracted from SSML
+    and output as a time:0 cue so the spoken announcement stays in sync
+  - Verse 1 timestamp derived from its actual word position within the
+    first Whisper cue (sub-cue interpolation), not the cue boundary
+  - Conversion summary: verses aligned / word-matched / interpolated /
+    low confidence counts
+  - Preview table: every verse with timestamp, match type, and text
+  - Downloads verse-aligned VTT ready for Audio Sync Player
+  - No manual timing adjustment needed in Audio Sync Player when using
+    a verse-aligned VTT
+
+admin.html (new):
+  - Sidebar navigation linking all tools and external services
+  - Tool cards for quick launch
+  - Expandable workflow phases (1 through 6) with inline launch buttons
+  - Deploy file checklist (what to include vs exclude from Netlify)
+  - External links: AWS Polly, AWS S3, Archive.org, Netlify, Live Site
+
+audio_sync_player.html changes:
+  - When a timed format (VTT/LRC/SRT) is loaded, shows an info bar
+    confirming exact timestamps and time span
+  - Timing Rate card dims and disables when a timed format is loaded
+    (rate controls only apply to SSML/TXT character-based timing)
+  - Rate controls restore to full opacity on Clear Files
+  - No changes to export behavior or chapter HTML output
+
+Whisper CLI (external tool — install once):
+  python -m pip install openai-whisper
+  winget install ffmpeg
+  python -m whisper "chapter.mp3" --model small --output_format vtt
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  VERSION 5 — WORKFLOW CHANGE SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Old workflow (v4):
+  .txt → SSML (Claude chat) → Polly MP3 →
+  Audio Sync Player (manual timing tuning) → export
+
+New workflow (v5):
+  .txt → ssml_converter.html (V1 + V2 SSML) →
+  Polly MP3 (V1 SSML) →
+  Whisper CLI (raw VTT) →
+  vtt_converter.html (verse-aligned VTT) →
+  Audio Sync Player (no tuning needed) → export
+
+Manual timing tuning step eliminated. Each verse now has a timestamp
+derived from the actual Whisper transcription of the audio.
+
+Backup files:
+  audio_sync_player.html.v5.bak
+  (chapter_player.js, chapter_player.css unchanged — v4.bak still current)
+  (scripture_reader.html unchanged — v4.bak still current)
+
+Roll back to v4:
+  Replace audio_sync_player.html with audio_sync_player.html.v4.bak
+  Remove or ignore ssml_converter.html, vtt_converter.html, admin.html
+  No Netlify redeploy needed (deployed files unchanged)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PRODUCTION VERSION 4 — 2026-05-17  (superseded)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Status: STABLE
+
+Change: Mobile and tablet layout fixes
+
+Changed files (v3 → v4):
+  chapter_player.css       (primary change — full mobile safe area support)
+  chapter_player.js        (adds viewport-fit=cover at runtime)
+  audio_sync_player.html   (viewport-fit=cover in chapter + index templates)
+  scripture_reader.html    (viewport-fit=cover in index template)
+
+Problems fixed:
+  - Audio controls hidden behind phone navigation bar on iOS/Android
+  - Controls not scrolling with page (were fixed, now flex-pinned correctly)
+  - Text too small / tap targets too small on mobile
+
+Technical changes in chapter_player.css:
+  - height: 100vh → height: 100dvh (dynamic viewport height — excludes
+    browser chrome and nav bars on mobile browsers)
+  - Added CSS env() safe area variables:
+      --safe-top:    env(safe-area-inset-top)
+      --safe-bottom: env(safe-area-inset-bottom)
+      --safe-left/right for notch/island devices
+  - cp-header padding-top: adds safe-top so content clears status bar
+  - cp-controls padding-bottom: adds safe-bottom so controls clear
+    home indicator / gesture bar on iPhone and Android
+  - -webkit-overflow-scrolling: touch for momentum scrolling on iOS
+  - Minimum tap targets: 40x40px on all buttons
+  - Slider thumb enlarged to 18px for easier touch
+  - Landscape mobile breakpoint added (max-height: 500px)
+
+Technical changes in chapter_player.js:
+  - Injects viewport-fit=cover into existing viewport meta at runtime
+
+Meta tags added to generated index.html and chapter HTML:
+  - viewport-fit=cover
+  - mobile-web-app-capable
+  - apple-mobile-web-app-capable
+  - apple-mobile-web-app-status-bar-style: black-translucent
+
+Backup files:
+  audio_sync_player.html.v4.bak
+  scripture_reader.html.v4.bak
+  chapter_player.js.v4.bak
+  chapter_player.css.v4.bak
+
+Roll back to v3:
+  Replace all four files with their .v3.bak versions
+  Re-zip and redeploy to Netlify
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PRODUCTION VERSION 3 — 2026-05-17  (superseded)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Status: STABLE
+
+Changed files (v2 → v3):
+  scripture_reader.html only — all other files unchanged from v2
+
+Changes:
+  1. Restore from chapter HTML file
+     - File picker in Add chapter panel
+     - Reads CHAPTER_DATA using Function constructor sandbox
+     - Extracts: Scripture Set, Book, Chapter, audioSrc, filename
+     - Re-registers chapter without re-timing or re-exporting
+     - Replaces existing entry if same Scripture Set + Book + Chapter
+     - Clear error messages if file is invalid
+     - Prompts to export index.html after restore
+
+  2. Canonical book sort order
+     - Library sorts automatically on every save and load
+     - Book of Mormon: 1 Nephi → Moroni (canonical order)
+     - OT, NT, Pearl of Great Price, D&C also supported
+     - Chapter: numeric (Chapter 2 before Chapter 10)
+
+Backup files:
+  scripture_reader.html.v3.bak
+  (all other files unchanged — v2.bak still current for those)
+
+Roll back to v2:
+  Replace scripture_reader.html with scripture_reader.html.v2.bak
+  Re-zip and redeploy to Netlify
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PRODUCTION VERSION 2 — 2026-05-16  (superseded)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Status: STABLE
+
+Key additions over v1:
+  - 3-level hierarchy: Scripture Set → Book → Chapter
+  - chapterfiles/ folder (renamed from textfiles/)
+  - Export log as CSV (was pipe-delimited .txt)
+  - Selective delete: per chapter, per book, per set
+  - Clear files button in audio_sync_player
+  - Save JSON to file button
+  - localStorage key: scripture_reader_chapters_v2
+
+Backup files:
+  audio_sync_player.html.v2.bak
+  scripture_reader.html.v2.bak
+  chapter_player.js.v2.bak
+  chapter_player.css.v2.bak
+
+Roll back to v1:
+  Copy .v1.bak files over current files
+  Rename chapterfiles/ back to textfiles/
+  Re-zip and drop at netlify.com/drop
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  VERSION 1 — 2026-05-16  (superseded)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Initial release.
+  - textfiles/ folder (renamed to chapterfiles/ in v2)
+  - 2-level hierarchy: Book → Chapter (no Scripture Set)
+  - No clear files button
+  - No Save JSON to file button
+  - Export log was pipe-delimited .txt (not CSV)
+  - No selective delete (clear all only)
+  - localStorage key: scripture_reader_chapters_v1
+
+Backup files:
+  audio_sync_player.html.v1.bak
+  scripture_reader.html.v1.bak
+  chapter_player.js.v1.bak
+  chapter_player.css.v1.bak
