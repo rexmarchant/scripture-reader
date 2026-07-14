@@ -536,8 +536,13 @@ function esc(str) {
 // ── DOWNLOAD ──────────────────────────────────────────────────────────────────
 $('download-btn').addEventListener('click', () => {
   if (!outputVtt) return;
-  // Derive output filename from SSML name
-  const base = ssmlName.replace(/(-v2)?\.ssml$/i, '').replace(/\.ssml$/i, '');
+  // Derive output filename from the Whisper VTT name, replacing "-whisper" with "-final-vtt"
+  let base = vttName.replace(/\.vtt$/i, '');
+  if (/-whisper$/i.test(base)) {
+    base = base.replace(/-whisper$/i, '-final-vtt');
+  } else {
+    base = base + '-final-vtt';
+  }
   const filename = base + '.vtt';
   const blob = new Blob([outputVtt], { type: 'text/vtt' });
   const url = URL.createObjectURL(blob);

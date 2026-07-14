@@ -1,0 +1,320 @@
+<!-- PRODUCTION VERSION 1 — ssml_converter.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSML Converter — Scripture Tool</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f0f11; --surface: #18181c; --surface2: #212126;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --text: #f0efe8; --muted: #7a7a85; --accent: #c8f060; --accent2: #60c8f0;
+    --warn: #f0b860; --danger: #e06060; --radius: 10px;
+    --font: 'IBM Plex Sans', sans-serif; --mono: 'IBM Plex Mono', monospace;
+  }
+  body { background:var(--bg); color:var(--text); font-family:var(--font); font-size:15px; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:2rem 1rem 4rem; }
+  header { width:100%; max-width:700px; margin-bottom:1.5rem; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  header h1 { font-size:18px; font-weight:500; letter-spacing:-0.02em; }
+  .badge { font-family:var(--mono); font-size:11px; color:var(--accent); background:rgba(200,240,96,0.1); border:1px solid rgba(200,240,96,0.2); padding:2px 8px; border-radius:100px; }
+  .badge.b2 { color:var(--accent2); background:rgba(96,200,240,0.1); border-color:rgba(96,200,240,0.2); }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; width:100%; max-width:700px; margin-bottom:12px; }
+  .card-title { font-size:13px; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:12px; }
+
+  /* Drop zone */
+  #drop-zone { border:1px dashed var(--border2); border-radius:var(--radius); padding:2.5rem 1rem; text-align:center; cursor:pointer; transition:background 0.15s,border-color 0.15s; width:100%; max-width:700px; margin-bottom:8px; position:relative; }
+  #drop-zone:hover, #drop-zone.drag-over { background:var(--surface); border-color:var(--accent); }
+  #drop-zone.has-file { border-style:solid; border-color:rgba(200,240,96,0.4); background:rgba(200,240,96,0.04); }
+  #drop-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+  #drop-zone .dz-icon { font-size:30px; display:block; margin-bottom:10px; opacity:0.35; }
+  #drop-zone.has-file .dz-icon { opacity:0.8; }
+  #drop-zone p { color:var(--muted); font-size:14px; line-height:1.7; }
+  #drop-zone p strong { color:var(--text); font-weight:500; }
+  #drop-zone.has-file p { color:var(--accent); }
+
+  /* File info bar */
+  #file-bar { display:none; width:100%; max-width:700px; margin-bottom:8px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:10px 14px; font-size:13px; font-family:var(--mono); color:var(--muted); align-items:center; gap:10px; }
+  #file-bar .fname { color:var(--text); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #file-bar .fsize { color:var(--muted); font-size:12px; flex-shrink:0; }
+
+  /* Buttons */
+  button { background:transparent; border:1px solid var(--border2); color:var(--text); border-radius:6px; padding:6px 14px; font-family:var(--font); font-size:13px; cursor:pointer; transition:background 0.12s,border-color 0.12s; white-space:nowrap; }
+  button:hover { background:var(--surface2); }
+  button:disabled { opacity:0.35; cursor:not-allowed; }
+  button.accent { background:var(--accent); color:#0f0f11; border-color:var(--accent); font-weight:500; }
+  button.accent:hover:not(:disabled) { background:#d8ff70; }
+  button.export-btn { background:rgba(96,200,240,0.1); border-color:rgba(96,200,240,0.3); color:var(--accent2); font-weight:500; }
+  button.export-btn:hover:not(:disabled) { background:rgba(96,200,240,0.18); }
+  button.danger-btn { color:var(--danger); border-color:rgba(224,96,96,0.3); }
+  button.danger-btn:hover { background:rgba(224,96,96,0.08); }
+
+  .btn-row { display:flex; gap:8px; flex-wrap:wrap; width:100%; max-width:700px; margin-bottom:12px; align-items:center; }
+
+  /* Status bars */
+  .info-bar { display:none; font-size:12px; font-family:var(--mono); border-radius:var(--radius); padding:10px 14px; margin-bottom:12px; line-height:1.7; width:100%; max-width:700px; }
+  .info-bar.working { color:var(--accent2); background:rgba(96,200,240,0.07); border:1px solid rgba(96,200,240,0.2); }
+  .info-bar.success { color:var(--accent); background:rgba(200,240,96,0.07); border:1px solid rgba(200,240,96,0.2); }
+  .info-bar.error { color:var(--danger); background:rgba(224,96,96,0.07); border:1px solid rgba(224,96,96,0.2); }
+
+  /* Spinner */
+  .spinner { display:inline-block; width:12px; height:12px; border:2px solid currentColor; border-top-color:transparent; border-radius:50%; animation:spin 0.6s linear infinite; vertical-align:-2px; margin-right:6px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* Result cards */
+  #results { display:none; width:100%; max-width:700px; }
+  .result-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media(max-width:520px) { .result-grid { grid-template-columns:1fr; } }
+
+  .result-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; }
+  .result-card .rc-label { font-size:11px; font-family:var(--mono); color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px; }
+  .result-card .rc-title { font-size:15px; font-weight:500; color:var(--text); margin-bottom:4px; }
+  .result-card .rc-desc { font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:10px; }
+  .result-card .rc-meta { font-family:var(--mono); font-size:11px; color:var(--muted); margin-bottom:10px; }
+  .result-card .rc-meta span { color:var(--accent2); }
+
+  .preview-box { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:8px 10px; font-family:var(--mono); font-size:11px; color:var(--muted); max-height:90px; overflow-y:auto; line-height:1.6; white-space:pre-wrap; word-break:break-all; margin-bottom:10px; scrollbar-width:thin; scrollbar-color:var(--border2) transparent; }
+  .preview-box::-webkit-scrollbar { width:3px; }
+  .preview-box::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+  .v1-accent { color:var(--accent) !important; border-color:rgba(200,240,96,0.3) !important; }
+  .v2-accent { color:var(--accent2) !important; border-color:rgba(96,200,240,0.3) !important; }
+
+  hr { border:none; border-top:1px solid var(--border); margin:4px 0 12px; width:100%; max-width:700px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SSML Converter</h1>
+  <span class="badge">v1</span>
+  <span class="badge b2">Scripture Tool</span>
+</header>
+
+<div id="drop-zone">
+  <input type="file" id="fileInput" accept=".txt" />
+  <span class="dz-icon">📄</span>
+  <p id="dzText"><strong>Drop a .txt scripture file here</strong><br>or click to browse — generates V1 and V2 SSML</p>
+</div>
+
+<div id="file-bar">
+  <span>📄</span>
+  <span class="fname" id="fileName">—</span>
+  <span class="fsize" id="fileSize"></span>
+  <button class="danger-btn" id="clearBtn" style="padding:3px 10px;font-size:12px;">✕ Clear</button>
+</div>
+
+<div class="btn-row">
+  <button class="accent" id="convertBtn" disabled>Convert to SSML</button>
+  <span style="font-size:12px;color:var(--muted);margin-left:4px;" id="hintText">Load a .txt file to begin</span>
+</div>
+
+<div class="info-bar" id="statusBar"></div>
+
+<div id="results">
+  <div class="card-title" style="width:100%;max-width:700px;margin-bottom:8px;">Ready to download</div>
+  <div class="result-grid">
+
+    <div class="result-card">
+      <div class="rc-label">Output V1</div>
+      <div class="rc-title" style="color:var(--accent);">Audio SSML</div>
+      <div class="rc-desc">Verse numbers removed. Paste into Amazon Polly (Long-Form / Patrick) to generate the MP3.</div>
+      <div class="rc-meta" id="v1meta"><span id="v1segs">—</span> segments</div>
+      <div class="preview-box" id="v1preview"></div>
+      <button class="accent" id="dlV1" style="width:100%;">⬇ Download V1</button>
+    </div>
+
+    <div class="result-card">
+      <div class="rc-label">Output V2</div>
+      <div class="rc-title" style="color:var(--accent2);">Sync SSML</div>
+      <div class="rc-desc">Verse numbers kept. Drop into audio_sync_player.html for timing and chapter export.</div>
+      <div class="rc-meta" id="v2meta"><span id="v2segs">—</span> segments</div>
+      <div class="preview-box" id="v2preview"></div>
+      <button class="export-btn" id="dlV2" style="width:100%;">⬇ Download V2</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const dz = document.getElementById('drop-zone');
+const fileInput = document.getElementById('fileInput');
+const fileBar = document.getElementById('file-bar');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+const clearBtn = document.getElementById('clearBtn');
+const convertBtn = document.getElementById('convertBtn');
+const hintText = document.getElementById('hintText');
+const statusBar = document.getElementById('statusBar');
+const results = document.getElementById('results');
+
+let currentFile = null;
+let baseName = '';
+let v1Content = '';
+let v2Content = '';
+
+function setFile(file) {
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith('.txt')) {
+    showStatus('error', 'Please load a .txt file.');
+    return;
+  }
+  currentFile = file;
+  baseName = file.name.replace(/\.txt$/i, '');
+  fileName.textContent = file.name;
+  fileSize.textContent = (file.size / 1024).toFixed(1) + ' KB';
+  fileBar.style.display = 'flex';
+  dz.classList.add('has-file');
+  document.getElementById('dzText').innerHTML = '<strong>' + file.name + '</strong><br>Ready to convert';
+  convertBtn.disabled = false;
+  hintText.textContent = 'Click Convert to generate V1 + V2';
+  results.style.display = 'none';
+  statusBar.style.display = 'none';
+}
+
+fileInput.addEventListener('change', e => { if (e.target.files[0]) setFile(e.target.files[0]); });
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+});
+
+clearBtn.addEventListener('click', () => {
+  currentFile = null;
+  v1Content = '';
+  v2Content = '';
+  fileBar.style.display = 'none';
+  dz.classList.remove('has-file');
+  document.getElementById('dzText').innerHTML = '<strong>Drop a .txt scripture file here</strong><br>or click to browse — generates V1 and V2 SSML';
+  convertBtn.disabled = true;
+  hintText.textContent = 'Load a .txt file to begin';
+  results.style.display = 'none';
+  statusBar.style.display = 'none';
+  fileInput.value = '';
+});
+
+function showStatus(type, msg) {
+  statusBar.className = 'info-bar ' + type;
+  statusBar.style.display = 'block';
+  statusBar.innerHTML = (type === 'working' ? '<span class="spinner"></span>' : '') + msg;
+}
+
+convertBtn.addEventListener('click', async () => {
+  if (!currentFile) return;
+  convertBtn.disabled = true;
+  hintText.textContent = '';
+  results.style.display = 'none';
+  showStatus('working', 'Reading file…');
+
+  const rawText = await currentFile.text();
+  showStatus('working', 'Sending to Claude API — this may take 15–30 seconds for long chapters…');
+
+  const systemPrompt = `You are a scripture text converter. Convert the provided plain scripture text to SSML format.
+
+Output ONLY a raw JSON object with exactly two keys: "v1" and "v2". No explanation, no markdown fences, no preamble — just the JSON.
+
+SSML structure rules:
+- Each file begins with: <?xml version="1.0" encoding="UTF-8"?>
+- All content is wrapped in <speak> ... </speak>
+- Each segment (chapter title or verse) is wrapped in <p><s>TEXT</s></p>
+- The chapter heading/title (if present, e.g. "First Nephi, Chapter 1") becomes the first segment in both files
+
+V1 (audio-only SSML):
+- Remove verse numbers from the start of each verse (e.g. "1. ", "2. " etc.)
+- Text reads naturally as continuous spoken prose
+- Used to generate MP3 in Amazon Polly
+
+V2 (sync-display SSML):
+- Keep verse numbers exactly as written at the start of each verse
+- Used in audio_sync_player.html for synchronized text display
+- Verse numbers help the reader follow along
+
+Preserve all original wording exactly. Do not paraphrase, summarize, or alter any text.
+
+Return only: {"v1": "<complete V1 SSML string>", "v2": "<complete V2 SSML string>"}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 16000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: 'Convert this scripture text:\n\n' + rawText }]
+      })
+    });
+
+    if (!resp.ok) {
+      let errMsg = 'API error ' + resp.status;
+      try { const e = await resp.json(); errMsg = e.error?.message || errMsg; } catch {}
+      throw new Error(errMsg);
+    }
+
+    const data = await resp.json();
+    let raw = data.content.map(b => b.text || '').join('');
+    raw = raw.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      const m = raw.match(/\{[\s\S]*\}/);
+      if (m) {
+        try { parsed = JSON.parse(m[0]); } catch { throw new Error('Could not parse API response. Try again.'); }
+      } else {
+        throw new Error('Unexpected API response format. Try again.');
+      }
+    }
+
+    v1Content = (parsed.v1 || '').trim();
+    v2Content = (parsed.v2 || '').trim();
+
+    if (!v1Content || !v2Content) throw new Error('API returned empty content for V1 or V2. Try again.');
+
+    const v1segs = (v1Content.match(/<p>/g) || []).length;
+    const v2segs = (v2Content.match(/<p>/g) || []).length;
+
+    document.getElementById('v1segs').textContent = v1segs;
+    document.getElementById('v2segs').textContent = v2segs;
+    document.getElementById('v1meta').innerHTML = '<span>' + v1segs + '</span> segments · ' + (v1Content.length / 1024).toFixed(1) + ' KB';
+    document.getElementById('v2meta').innerHTML = '<span>' + v2segs + '</span> segments · ' + (v2Content.length / 1024).toFixed(1) + ' KB';
+    document.getElementById('v1preview').textContent = v1Content.substring(0, 400) + (v1Content.length > 400 ? '\n…' : '');
+    document.getElementById('v2preview').textContent = v2Content.substring(0, 400) + (v2Content.length > 400 ? '\n…' : '');
+
+    showStatus('success', '✓ Conversion complete — ' + baseName + '-v1.ssml and ' + baseName + '-v2.ssml ready');
+    results.style.display = 'block';
+    convertBtn.disabled = false;
+    hintText.textContent = 'Convert again or load a new file';
+
+  } catch (err) {
+    showStatus('error', '✕ ' + err.message);
+    convertBtn.disabled = false;
+    hintText.textContent = 'Conversion failed — try again';
+  }
+});
+
+function download(content, filename) {
+  const blob = new Blob([content], { type: 'application/xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('dlV1').addEventListener('click', () => {
+  if (v1Content) download(v1Content, baseName + '-v1.ssml');
+});
+document.getElementById('dlV2').addEventListener('click', () => {
+  if (v2Content) download(v2Content, baseName + '-v2.ssml');
+});
+</script>
+</body>
+</html>

@@ -33,15 +33,15 @@
 
 - Settings:
   - Engine:   Neural
-  - Language: English, US
-  - Voice:    Patrick, Male
+  - Language: English, British
+  - Voice:    Brian, Male
   - SSML toggle: ON
 
 - Copy/paste the full content of the V1 SSML file into the text area
 
-- Select "Synthesize to S3"
+- Select "Save to S3"
   - Use bucket: rex-file-storage-2026
-  - Click Synthesize and wait for the job to complete
+  - Click Save and wait for the job to complete
 
 - Download the .mp3 file from S3 and save to the source files folder
 
@@ -55,18 +55,20 @@
 - Open a Command Prompt (Windows) and run Whisper on the MP3:
 
     python -m whisper "path\to\chapter.mp3" --model small --output_format vtt
+    rename "path\to\chapter.vtt" "chapter-whisper.vtt"
 
   NOTE: First run downloads the Whisper model (~460MB) — this only happens once.
   The FP16/FP32 warning is harmless and can be ignored.
 
-- The output .vtt file is saved to the same folder as the MP3 (or your current
-  directory). Move it to the chapter's source files folder.
+- The output is renamed to filename-whisper.vtt and saved to the same folder
+  as the MP3 (or your current directory). Move it to the chapter's source
+  files folder.
 
 - Open vtt_converter.html (local admin tool)
 
 - Drag and drop BOTH files onto the drop zone at the same time (or one at a time):
   - V2 SSML file
-  - Whisper VTT file
+  - Whisper VTT file (filename-whisper.vtt)
 
 - Click Convert
 
@@ -75,7 +77,8 @@
   - Interpolated: verses estimated between anchors (good accuracy)
   - Low Confidence: verses with weak word matches — check these during playback
 
-- Click Download VTT and save the verse-aligned VTT to the source files folder
+- Click Download VTT — downloads filename-final-vtt.vtt (the "-whisper" suffix
+  is replaced with "-final-vtt") to the source files folder
 
 - This verse-aligned VTT replaces the V2 SSML as input to the Audio Sync Player.
   No manual timing adjustment is needed.
@@ -90,7 +93,12 @@
 
 - Click Upload and drag/drop or choose the .mp3 file
 
-- Fill out the required information about the file
+- Fill out the required information about the file:
+  - Title structure:       Bookname Ch #
+  - Description structure: Scripture Set, Bookname Ch # AI Voice
+  - Tags structure:        Scripture Set, Bookname Chapter #
+
+- Add the entry to the List "Scripture Reader"
 
 - Click "Upload and Create Your Item" and wait until the page is created
 
@@ -131,10 +139,10 @@
       book-of-mormon-1-nephi-chapter-3.html  → move to chapterfiles/ folder
       index.html                              → replace root index.html
 
-- Click "Save JSON to file" and save the .json to the source files folder
+- Click "Download export log" (between Export Chapter Player and Copy JSON)
+  and save locally (do not deploy this file)
 
-- Click "Download export log" (near the top of the page) and save locally
-  (do not deploy this file)
+- Click "Save JSON to file" and save the .json to the source files folder
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -71,22 +71,30 @@ Phase 1 — Generate SSML (ssml_converter.html)
 
 Phase 2a — Generate audio (AWS Polly)
   1. Sign into AWS → Amazon Polly → Text to Speech.
-  2. Engine: Neural, Language: English US, Voice: Patrick, SSML: ON.
-  3. Paste V1 SSML content → Synthesize to S3 (bucket: rex-file-storage-2026).
+  2. Engine: Neural, Language: English (British), Voice: Brian, SSML: ON.
+  3. Paste V1 SSML content → Save to S3 (bucket: rex-file-storage-2026).
   4. Download the MP3 from S3, then delete it from the bucket.
 
 Phase 2b — Generate verse-aligned VTT (Whisper + vtt_converter.html)
-  1. Run Whisper on the MP3 from a Command Prompt:
+  1. Run Whisper on the MP3 from a Command Prompt, then rename the output
+     to add a "-whisper" suffix:
        python -m whisper "path\to\chapter.mp3" --model small --output_format vtt
+       rename "path\to\chapter.vtt" "chapter-whisper.vtt"
   2. Open vtt_converter.html.
-  3. Drop the V2 SSML and Whisper VTT onto the drop zone.
+  3. Drop the V2 SSML and the Whisper VTT (filename-whisper.vtt) onto the drop zone.
   4. Click Convert — review the summary (word-matched / interpolated / low).
-  5. Click Download VTT — save the verse-aligned VTT to the source files folder.
+  5. Click Download VTT — downloads filename-final-vtt.vtt ("-whisper" is
+     replaced with "-final-vtt") to the source files folder.
 
 Phase 3 — Upload MP3 to Archive.org
   1. Go to archive.org/upload and upload the MP3.
-  2. After upload, right-click VBR MP3 in Download Options → Copy Link Address.
-  3. Confirm the URL uses /download/ not /details/:
+  2. Use this metadata structure:
+       Title       → Bookname Ch #
+       Description → Scripture Set, Bookname Ch # AI Voice
+       Tags        → Scripture Set, Bookname Chapter #
+  3. Add the entry to the List "Scripture Reader".
+  4. After upload, right-click VBR MP3 in Download Options → Copy Link Address.
+  5. Confirm the URL uses /download/ not /details/:
        WRONG:   https://archive.org/details/your-item
        CORRECT: https://archive.org/download/your-item/your-file.mp3
 
@@ -103,8 +111,9 @@ Phase 4 — Sync and export chapter (audio_sync_player.html)
   5. Click "Export Chapter Player":
        book-of-mormon-1-nephi-chapter-3.html  → move to chapterfiles/
        index.html                              → replace root index.html
-  6. Click "Save JSON to file" → save to source files folder.
-  7. Click "Download export log" → save locally (do not deploy).
+  6. Click "Download export log" (between Export Chapter Player and Copy JSON)
+     → save locally (do not deploy).
+  7. Click "Save JSON to file" → save to source files folder.
 
 Phase 5 — Verify locally
   Open local index.html → confirm new chapter appears → open it and
@@ -173,11 +182,13 @@ Install once:
 
 Run per chapter:
   python -m whisper "path\to\file.mp3" --model small --output_format vtt
+  rename "path\to\file.vtt" "file-whisper.vtt"
 
 Notes:
   - First run downloads the model (~460MB) — subsequent runs are fast
   - The FP16/FP32 warning on CPU is harmless
-  - Output .vtt file goes to the same folder as the MP3 by default
+  - Output .vtt file goes to the same folder as the MP3 by default —
+    rename it to add a "-whisper" suffix before using it in vtt_converter.html
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -204,9 +204,9 @@
       <div class="phase-body">
         <ul class="phase-steps">
           <li>Go to <strong>AWS Console → Amazon Polly → Text to Speech</strong>.</li>
-          <li>Set Engine: <strong>Neural</strong>, Language: <strong>English (US)</strong>, Voice: <strong>Patrick</strong>.</li>
+          <li>Set Engine: <strong>Neural</strong>, Language: <strong>English (British)</strong>, Voice: <strong>Brian</strong>.</li>
           <li>Switch input to <strong>SSML</strong> and paste the <strong>V1 SSML</strong> content.</li>
-          <li>Click <strong>Synthesize to S3</strong>. Choose your S3 bucket and click Synthesize.</li>
+          <li>Click <strong>Save to S3</strong>. Choose S3 bucket <code>rex-file-storage-2026</code> and click Save.</li>
           <li>Wait for the job to complete, then download the MP3 from S3.</li>
           <li><strong>Delete the file from S3</strong> after downloading — avoid ongoing storage charges.</li>
           <li>Save the MP3 to the chapter's source folder.</li>
@@ -229,12 +229,13 @@
         <ul class="phase-steps">
           <li>Open a Command Prompt and run Whisper on the chapter MP3:</li>
         </ul>
-        <div class="code-block">python -m whisper "path\to\chapter.mp3" --model small --output_format vtt</div>
+        <div class="code-block">python -m whisper "path\to\chapter.mp3" --model small --output_format vtt
+rename "path\to\chapter.vtt" "chapter-whisper.vtt"</div>
         <ul class="phase-steps" style="margin-top:10px;">
-          <li>Whisper outputs a <code>.vtt</code> file in the same folder as the MP3 (or your current directory). Move it to the chapter's source folder.</li>
+          <li>Whisper outputs a <code>filename-whisper.vtt</code> file in the same folder as the MP3 (or your current directory). Move it to the chapter's source folder.</li>
           <li>Open <strong>VTT Converter</strong> and drop in the <strong>V2 SSML</strong> and the <strong>Whisper VTT</strong>.</li>
           <li>Click <strong>Convert</strong> — review the confidence column in the preview table. High confidence = accurate timestamp. Low confidence rows may need spot-checking.</li>
-          <li>Click <strong>Download VTT</strong> to save the verse-aligned VTT file.</li>
+          <li>Click <strong>Download VTT</strong> to download a <code>filename-final-vtt.vtt</code> file with the verse-aligned timestamps.</li>
           <li>This verse-aligned VTT replaces the V2 SSML as input to the Audio Sync Player — exact timestamps, no manual tuning needed.</li>
         </ul>
         <a class="phase-launch" href="vtt_converter.html">Open VTT Converter →</a>
@@ -255,6 +256,11 @@
         <ul class="phase-steps">
           <li>Go to <a href="https://archive.org/upload" target="_blank">archive.org/upload</a> and log in with your Google account.</li>
           <li>Upload the MP3. Give it a descriptive title.</li>
+          <li>Use this metadata structure:<br>
+            <strong>Title</strong> — <code>Bookname Ch #</code><br>
+            <strong>Description</strong> — <code>Scripture Set, Bookname Ch # AI Voice</code><br>
+            <strong>Tags</strong> — <code>Scripture Set, Bookname Chapter #</code></li>
+          <li>Add the entry to the List <strong>"Scripture Reader"</strong>.</li>
           <li>After upload, open the item page. In Download Options, right-click the <strong>VBR MP3</strong> filename → <strong>Copy Link Address</strong>.</li>
           <li>The URL must use <code>/download/</code> not <code>/details/</code>:<br>
             ✗ <code>archive.org/details/your-item</code><br>
@@ -285,8 +291,8 @@
           <li>Click <strong>Export Chapter Player</strong> → two files download:<br>
             <code>book-chapter.html</code> → move to <code>chapterfiles/</code><br>
             <code>index.html</code> → replace root <code>index.html</code></li>
-          <li>Click <strong>Save JSON to file</strong> and save to the chapter source folder for reference.</li>
           <li>Click <strong>Download export log</strong> and save locally (do not deploy).</li>
+          <li>Click <strong>Save JSON to file</strong> and save to the chapter source folder for reference.</li>
         </ul>
         <a class="phase-launch" href="audio_sync_player.html">Open Audio Sync Player →</a>
       </div>

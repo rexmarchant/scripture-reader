@@ -18,7 +18,7 @@ two SSML files as downloads.
 
 | File | Purpose |
 |---|---|
-| `{name}-v1.ssml` | Verse numbers stripped — paste into Amazon Polly (Neural, Patrick voice) |
+| `{name}-v1.ssml` | Verse numbers stripped — paste into Amazon Polly (Neural, Brian voice) |
 | `{name}-v2.ssml` | Verse numbers retained — used by vtt_converter.html |
 
 ## What to do when triggered
@@ -37,7 +37,7 @@ Use this exact system instruction when generating the SSML:
 
 ---
 You are converting scripture text to SSML for Amazon Polly (Neural engine,
-Patrick voice) and a synchronized audio reader.
+Brian voice) and a synchronized audio reader.
 
 Produce EXACTLY two SSML documents.
 
