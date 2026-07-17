@@ -135,6 +135,46 @@ def words_match(a: str, b: str) -> bool:
 
 # -- ALIGNMENT ENGINE (3-pass) --------------------------------------------------
 
+def _score_anchor_at(word_list, wi, anchor):
+    """Score how well `anchor` matches the word stream starting at index wi."""
+    score = 0
+    w_offset = 0
+    for ai in range(len(anchor)):
+        w1 = word_list[wi + w_offset] if wi + w_offset < len(word_list) else None
+        w2 = word_list[wi + w_offset + 1] if wi + w_offset + 1 < len(word_list) else None
+        if w1 is None:
+            break
+        if words_match(w1["word"], anchor[ai]):
+            score += 1
+            w_offset += 1
+        elif w2 is not None and words_match(w2["word"], anchor[ai]):
+            w_offset += 2
+        else:
+            break
+    return score
+
+
+def _search_anchor_window(word_list, start, limit, anchor):
+    """Scan word_list[start:limit) for the best anchor match.
+    Returns (best_word_idx, best_score)."""
+    best_word_idx = -1
+    best_score = 0
+    limit = min(limit, len(word_list))
+    wi = max(start, 0)
+    while wi < limit:
+        if not words_match(word_list[wi]["word"], anchor[0] if anchor else ""):
+            wi += 1
+            continue
+        score = _score_anchor_at(word_list, wi, anchor)
+        if score > best_score:
+            best_score = score
+            best_word_idx = wi
+        if best_score >= min(6, len(anchor)):
+            break
+        wi += 1
+    return best_word_idx, best_score
+
+
 def align_verses(verses, cues):
     word_list = []  # each: {word, cueIdx, startSec}
     for ci, cue in enumerate(cues):
@@ -148,42 +188,43 @@ def align_verses(verses, cues):
 
     total_duration = cues[-1]["startSec"] + 5
 
+    # Proportional-position lookup (by character offset) used as a recovery
+    # anchor below -- lets a stuck search pointer "un-stick" itself instead
+    # of cascading failures through the rest of a long chapter.
+    total_chars = sum(len(t) for _, t in verses) or 1
+    cum_chars = []
+    running = 0
+    for _, t in verses:
+        cum_chars.append(running)
+        running += len(t)
+
     # PASS 1: word-stream matching
     raw = []
     word_search_start = 0
+    SEARCH_WINDOW = 1500  # words -- generous forward window per verse
 
-    for verse_num, verse_text in verses:
+    for verse_idx, (verse_num, verse_text) in enumerate(verses):
         anchor = verse_anchor_words(verse_text, 8)
 
-        best_word_idx = -1
-        best_score = 0
-        search_limit = min(len(word_list), word_search_start + 800)
+        search_limit = word_search_start + SEARCH_WINDOW
+        best_word_idx, best_score = _search_anchor_window(
+            word_list, word_search_start, search_limit, anchor
+        )
 
-        wi = word_search_start
-        while wi < search_limit:
-            if not words_match(word_list[wi]["word"], anchor[0] if anchor else ""):
-                wi += 1
-                continue
-            score = 0
-            w_offset = 0
-            for ai in range(len(anchor)):
-                w1 = word_list[wi + w_offset] if wi + w_offset < len(word_list) else None
-                w2 = word_list[wi + w_offset + 1] if wi + w_offset + 1 < len(word_list) else None
-                if w1 is None:
-                    break
-                if words_match(w1["word"], anchor[ai]):
-                    score += 1
-                    w_offset += 1
-                elif w2 is not None and words_match(w2["word"], anchor[ai]):
-                    w_offset += 2
-                else:
-                    break
-            if score > best_score:
-                best_score = score
-                best_word_idx = wi
-            if best_score >= min(6, len(anchor)):
-                break
-            wi += 1
+        weak_match = best_word_idx == -1 or best_score < min(4, len(anchor))
+        if weak_match:
+            # Recovery: estimate where this verse should fall based on its
+            # proportional position (by character count) through the whole
+            # chapter, and search a window around that estimate. Unlike the
+            # forward-only search above, this can land anywhere in the
+            # transcript, so it can recover a search pointer that got
+            # stranded by an earlier ambiguous/short verse.
+            est_idx = int((cum_chars[verse_idx] / total_chars) * len(word_list))
+            rec_idx, rec_score = _search_anchor_window(
+                word_list, est_idx - 500, est_idx + 500, anchor
+            )
+            if rec_score > best_score:
+                best_word_idx, best_score = rec_idx, rec_score
 
         if best_score >= min(8, len(anchor)):
             confidence = "high"
