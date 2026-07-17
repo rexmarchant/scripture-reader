@@ -391,7 +391,18 @@ def append_export_log(log_path, scripture_set, book, chapter, audio_url, audio_f
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     row = [now, scripture_set, book, chapter, audio_url, "0", "11", "153", audio_file, text_file]
     is_new = not log_path.exists()
+    # Guard against a missing trailing newline on the existing file (can happen
+    # when the CSV was last edited/downloaded by hand), which would otherwise
+    # glue the new row onto the end of the last line.
+    needs_leading_newline = False
+    if not is_new and log_path.stat().st_size > 0:
+        with open(log_path, "rb") as f:
+            f.seek(-1, 2)
+            needs_leading_newline = f.read(1) not in (b"\n", b"\r")
+
     with open(log_path, "a", newline="", encoding="utf-8") as f:
+        if needs_leading_newline:
+            f.write("\r\n")
         writer = csv.writer(f, quoting=csv.QUOTE_ALL)
         if is_new:
             writer.writerow(CSV_HEADERS)
