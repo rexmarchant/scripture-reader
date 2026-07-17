@@ -10,47 +10,46 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-:root{--bg:#0e0d0b;--surface:#161512;--surface2:#1d1c18;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--text:#ede8df;--muted:#6e6a62;--accent:#c8a96e;--accent-glow:rgba(200,169,110,0.12);--radius:10px;--font:'Lora',Georgia,serif;--mono:'IBM Plex Mono',monospace;}
-body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;}
+body{background:#0e0d0b;color:#ede8df;font-family:'Lora',Georgia,serif;min-height:100vh;}
 .layout{display:flex;min-height:100vh;}
-.sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
-.sidebar-header{padding:22px 20px 16px;border-bottom:1px solid var(--border);}
+.sidebar{width:260px;flex-shrink:0;background:#161512;border-right:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sidebar-header{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.07);}
 .app-title{font-size:18px;font-weight:600;letter-spacing:-0.01em;line-height:1.2;}
-.app-sub{font-family:var(--mono);font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;}
+.app-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#c8a96e;text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;}
 .book-nav{padding:8px 0;flex:1;}
 .set-section{margin-bottom:2px;}
-.set-label{display:flex;align-items:center;justify-content:space-between;padding:9px 20px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;user-select:none;background:rgba(255,255,255,0.03);}
-.set-label:hover{color:var(--accent);}
+.set-label{display:flex;align-items:center;justify-content:space-between;padding:9px 20px;font-size:14px;font-weight:600;color:#ede8df;cursor:pointer;user-select:none;background:rgba(255,255,255,0.03);}
+.set-label:hover{color:#c8a96e;}
 .set-list{display:none;}
 .set-list.open{display:block;}
 .book-section{margin-bottom:0;}
-.book-label{display:flex;align-items:center;justify-content:space-between;padding:7px 20px 7px 32px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;user-select:none;}
-.book-label:hover{color:var(--text);}
+.book-label{display:flex;align-items:center;justify-content:space-between;padding:7px 20px 7px 32px;font-size:13px;font-weight:500;color:#6e6a62;cursor:pointer;user-select:none;}
+.book-label:hover{color:#ede8df;}
 .chapter-list{display:none;padding:0 0 4px;}
 .chapter-list.open{display:block;}
-.chapter-item{display:block;padding:5px 20px 5px 44px;font-size:12px;color:var(--muted);text-decoration:none;font-family:var(--mono);}
-.chapter-item:hover{color:var(--text);background:rgba(255,255,255,0.03);}
-.arrow{font-size:10px;transition:transform 0.2s;opacity:0.4;font-family:var(--mono);}
+.chapter-item{display:block;padding:5px 20px 5px 44px;font-size:12px;color:#6e6a62;text-decoration:none;font-family:'IBM Plex Mono',monospace;}
+.chapter-item:hover{color:#ede8df;background:rgba(255,255,255,0.03);}
+.arrow{font-size:10px;transition:transform 0.2s;opacity:0.4;font-family:'IBM Plex Mono',monospace;}
 .set-label.open .arrow,.book-label.open .arrow{transform:rotate(90deg);}
 .main{flex:1;padding:3rem 2.5rem;max-width:860px;}
 .welcome{margin-bottom:3rem;}
 .welcome h2{font-size:28px;font-weight:600;letter-spacing:-0.02em;margin-bottom:8px;}
-.welcome p{font-size:15px;color:var(--muted);line-height:1.7;max-width:520px;font-style:italic;}
-.section-title{font-family:var(--mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.welcome p{font-size:15px;color:#6e6a62;line-height:1.7;max-width:520px;font-style:italic;}
+.section-title{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#c8a96e;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.07);}
 .set-group{margin-bottom:3rem;}
-.set-group-title{font-size:22px;font-weight:600;letter-spacing:-0.02em;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:10px;}
+.set-group-title{font-size:22px;font-weight:600;letter-spacing:-0.02em;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.07);padding-bottom:10px;}
 .book-group{margin-bottom:2rem;}
-.book-group-title{font-size:17px;font-weight:500;letter-spacing:-0.01em;margin-bottom:12px;color:var(--muted);}
+.book-group-title{font-size:17px;font-weight:500;letter-spacing:-0.01em;margin-bottom:12px;color:#6e6a62;}
 .chapter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
-.chapter-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-decoration:none;color:var(--text);transition:background 0.15s,border-color 0.15s,transform 0.1s;}
-.chapter-card:hover{background:var(--surface2);border-color:var(--border2);transform:translateY(-1px);}
-.play-icon{width:32px;height:32px;background:var(--accent-glow);border:1px solid rgba(200,169,110,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:var(--accent);}
+.chapter-card{display:flex;align-items:center;gap:12px;background:#161512;border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:14px 16px;text-decoration:none;color:#ede8df;transition:background 0.15s,border-color 0.15s,transform 0.1s;}
+.chapter-card:hover{background:#1d1c18;border-color:rgba(255,255,255,0.12);transform:translateY(-1px);}
+.play-icon{width:32px;height:32px;background:rgba(200,169,110,0.12);border:1px solid rgba(200,169,110,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:#c8a96e;}
 .card-chapter{font-size:14px;font-weight:500;}
-.card-book{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:0.06em;display:flex;align-items:center;gap:6px;}
-.card-duration{color:var(--accent);opacity:0.8;}
-.empty-state{text-align:center;padding:4rem 2rem;color:var(--muted);}
+.card-book{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6e6a62;margin-top:2px;text-transform:uppercase;letter-spacing:0.06em;display:flex;align-items:center;gap:6px;}
+.card-duration{color:#c8a96e;opacity:0.8;}
+.empty-state{text-align:center;padding:4rem 2rem;color:#6e6a62;}
 .empty-state .big{font-size:40px;margin-bottom:16px;opacity:0.4;}
-.empty-state h3{font-size:18px;font-weight:500;margin-bottom:8px;color:var(--text);}
+.empty-state h3{font-size:18px;font-weight:500;margin-bottom:8px;color:#ede8df;}
 @media(max-width:640px){.sidebar{display:none;}.main{padding:1.5rem 1rem;}.chapter-grid{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -58,193 +57,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 <div class="layout">
   <nav class="sidebar">
     <div class="sidebar-header"><div class="app-title">Scripture Reader</div><div class="app-sub">Audio · Text · Sync</div></div>
-    <div class="book-nav">
-    <div class="set-section">
-      <div class="set-label" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">Book of Mormon <span class="arrow">▶</span></div>
-      <div class="set-list">
-        <div class="book-section">
-          <div class="book-label" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">— 1 Nephi <span class="arrow">▶</span></div>
-          <div class="chapter-list"><a class="chapter-item" href="chapterfiles/book-of-mormon-1-nephi-chapter-1.html">Chapter 1</a><a class="chapter-item" href="chapterfiles/book-of-mormon-1-nephi-chapter-2.html">Chapter 2</a><a class="chapter-item" href="chapterfiles/book-of-mormon-1-nephi-chapter-3.html">Chapter 3</a><a class="chapter-item" href="chapterfiles/book-of-mormon-1-nephi-chapter-4.html">Chapter 4</a><a class="chapter-item" href="chapterfiles/book-of-mormon-1-nephi-chapter-5.html">Chapter 5</a><a class="chapter-item" href="chapterfiles/book-of-mormon-1-nephi-chapter-6.html">Chapter 6</a><a class="chapter-item" href="chapterfiles/book-of-mormon-1-nephi-chapter-7.html">Chapter 7</a></div>
-        </div>
-        <div class="book-section">
-          <div class="book-label" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">— 2 Nephi <span class="arrow">▶</span></div>
-          <div class="chapter-list"><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-1.html">Chapter 1</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-2.html">Chapter 2</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-3.html">Chapter 3</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-4.html">Chapter 4</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-5.html">Chapter 5</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-6.html">Chapter 6</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-7.html">Chapter 7</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-8.html">Chapter 8</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-9.html">Chapter 9</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-10.html">Chapter 10</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-11.html">Chapter 11</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-12.html">Chapter 12</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-13.html">Chapter 13</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-14.html">Chapter 14</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-15.html">Chapter 15</a></div>
-        </div>
-      </div>
-    </div></div>
+    <div class="book-nav"><div class="set-section"><div class="set-label" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">Book of Mormon <span class="arrow">▶</span></div><div class="set-list"><div class="book-section"><div class="book-label" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">— 1 Nephi <span class="arrow">▶</span></div><div class="chapter-list"><a class="chapter-item" href="chapterfiles/book-of-mormon-1-nephi-chapter-1.html">Chapter 1</a><a class="chapter-item" href="chapterfiles/book-of-mormon-1-nephi-chapter-2.html">Chapter 2</a><a class="chapter-item" href="chapterfiles/book-of-mormon-1-nephi-chapter-3.html">Chapter 3</a><a class="chapter-item" href="chapterfiles/book-of-mormon-1-nephi-chapter-4.html">Chapter 4</a><a class="chapter-item" href="chapterfiles/book-of-mormon-1-nephi-chapter-5.html">Chapter 5</a><a class="chapter-item" href="chapterfiles/book-of-mormon-1-nephi-chapter-6.html">Chapter 6</a><a class="chapter-item" href="chapterfiles/book-of-mormon-1-nephi-chapter-7.html">Chapter 7</a></div></div><div class="book-section"><div class="book-label" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">— 2 Nephi <span class="arrow">▶</span></div><div class="chapter-list"><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-1.html">Chapter 1</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-2.html">Chapter 2</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-3.html">Chapter 3</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-4.html">Chapter 4</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-5.html">Chapter 5</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-6.html">Chapter 6</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-7.html">Chapter 7</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-8.html">Chapter 8</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-9.html">Chapter 9</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-10.html">Chapter 10</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-11.html">Chapter 11</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-12.html">Chapter 12</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-13.html">Chapter 13</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-14.html">Chapter 14</a><a class="chapter-item" href="chapterfiles/book-of-mormon-2-nephi-chapter-15.html">Chapter 15</a></div></div><div class="book-section"><div class="book-label" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">— Jacob <span class="arrow">▶</span></div><div class="chapter-list"><a class="chapter-item" href="chapterfiles/book-of-mormon-jacob-chapter-1.html">Chapter 1</a></div></div></div></div></div>
   </nav>
   <main class="main">
     <div class="welcome"><h2>Library</h2><p>Select a scripture set, book, and chapter to begin listening and reading along.</p></div>
     <div class="section-title">Scripture Library</div>
-    <div>
-    <div class="set-group">
-      <div class="set-group-title">Book of Mormon</div>
-      
-        <div class="book-group">
-          <div class="book-group-title">1 Nephi</div>
-          <div class="chapter-grid">
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-1-nephi-chapter-1.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 1</div>
-                <div class="card-book">1 Nephi<span class="card-duration">28:16</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-1-nephi-chapter-2.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 2</div>
-                <div class="card-book">1 Nephi<span class="card-duration">14:35</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-1-nephi-chapter-3.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 3</div>
-                <div class="card-book">1 Nephi<span class="card-duration">36:08</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-1-nephi-chapter-4.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 4</div>
-                <div class="card-book">1 Nephi<span class="card-duration">8:50</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-1-nephi-chapter-5.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 5</div>
-                <div class="card-book">1 Nephi<span class="card-duration">37:53</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-1-nephi-chapter-6.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 6</div>
-                <div class="card-book">1 Nephi<span class="card-duration">11:11</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-1-nephi-chapter-7.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 7</div>
-                <div class="card-book">1 Nephi<span class="card-duration">9:07</span></div>
-              </div>
-            </a>
-          </div>
-        </div>
-        <div class="book-group">
-          <div class="book-group-title">2 Nephi</div>
-          <div class="chapter-grid">
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-1.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 1</div>
-                <div class="card-book">2 Nephi<span class="card-duration">18:31</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-2.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 2</div>
-                <div class="card-book">2 Nephi<span class="card-duration">7:19</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-3.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 3</div>
-                <div class="card-book">2 Nephi<span class="card-duration">8:50</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-4.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 4</div>
-                <div class="card-book">2 Nephi<span class="card-duration">7:25</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-5.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 5</div>
-                <div class="card-book">2 Nephi<span class="card-duration">14:31</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-6.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 6</div>
-                <div class="card-book">2 Nephi<span class="card-duration">15:47</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-7.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 7</div>
-                <div class="card-book">2 Nephi<span class="card-duration">6:24</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-8.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 8</div>
-                <div class="card-book">2 Nephi<span class="card-duration">16:29</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-9.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 9</div>
-                <div class="card-book">2 Nephi<span class="card-duration">23:38</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-10.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 10</div>
-                <div class="card-book">2 Nephi<span class="card-duration">9:16</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-11.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 11</div>
-                <div class="card-book">2 Nephi<span class="card-duration">27:19</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-12.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 12</div>
-                <div class="card-book">2 Nephi<span class="card-duration">16:12</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-13.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 13</div>
-                <div class="card-book">2 Nephi<span class="card-duration">5:53</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-14.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 14</div>
-                <div class="card-book">2 Nephi<span class="card-duration">2:30</span></div>
-              </div>
-            </a>
-            <a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-15.html">
-              <div class="play-icon">▶</div>
-              <div class="card-text">
-                <div class="card-chapter">Chapter 15</div>
-                <div class="card-book">2 Nephi<span class="card-duration">3:40</span></div>
-              </div>
-            </a>
-          </div>
-        </div>
-    </div></div>
+    <div><div class="set-group"><div class="set-group-title">Book of Mormon</div><div class="book-group"><div class="book-group-title">1 Nephi</div><div class="chapter-grid"><a class="chapter-card" href="chapterfiles/book-of-mormon-1-nephi-chapter-1.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 1</div><div class="card-book">1 Nephi<span class="card-duration">28:16</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-1-nephi-chapter-2.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 2</div><div class="card-book">1 Nephi<span class="card-duration">14:35</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-1-nephi-chapter-3.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 3</div><div class="card-book">1 Nephi<span class="card-duration">36:08</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-1-nephi-chapter-4.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 4</div><div class="card-book">1 Nephi<span class="card-duration">8:50</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-1-nephi-chapter-5.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 5</div><div class="card-book">1 Nephi<span class="card-duration">37:53</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-1-nephi-chapter-6.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 6</div><div class="card-book">1 Nephi<span class="card-duration">11:11</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-1-nephi-chapter-7.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 7</div><div class="card-book">1 Nephi<span class="card-duration">9:07</span></div></div></a></div></div><div class="book-group"><div class="book-group-title">2 Nephi</div><div class="chapter-grid"><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-1.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 1</div><div class="card-book">2 Nephi<span class="card-duration">18:31</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-2.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 2</div><div class="card-book">2 Nephi<span class="card-duration">7:19</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-3.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 3</div><div class="card-book">2 Nephi<span class="card-duration">8:50</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-4.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 4</div><div class="card-book">2 Nephi<span class="card-duration">7:25</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-5.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 5</div><div class="card-book">2 Nephi<span class="card-duration">14:31</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-6.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 6</div><div class="card-book">2 Nephi<span class="card-duration">15:47</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-7.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 7</div><div class="card-book">2 Nephi<span class="card-duration">6:24</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-8.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 8</div><div class="card-book">2 Nephi<span class="card-duration">16:29</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-9.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 9</div><div class="card-book">2 Nephi<span class="card-duration">23:38</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-10.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 10</div><div class="card-book">2 Nephi<span class="card-duration">9:16</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-11.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 11</div><div class="card-book">2 Nephi<span class="card-duration">27:19</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-12.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 12</div><div class="card-book">2 Nephi<span class="card-duration">16:12</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-13.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 13</div><div class="card-book">2 Nephi<span class="card-duration">5:53</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-14.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 14</div><div class="card-book">2 Nephi<span class="card-duration">2:30</span></div></div></a><a class="chapter-card" href="chapterfiles/book-of-mormon-2-nephi-chapter-15.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 15</div><div class="card-book">2 Nephi<span class="card-duration">3:40</span></div></div></a></div></div><div class="book-group"><div class="book-group-title">Jacob</div><div class="chapter-grid"><a class="chapter-card" href="chapterfiles/book-of-mormon-jacob-chapter-1.html"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">Chapter 1</div><div class="card-book">Jacob<span class="card-duration">4:19</span></div></div></a></div></div></div></div>
   </main>
 </div>
 </body>
