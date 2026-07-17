@@ -1,236 +1,452 @@
-**Scripture Reader Workflow**
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  PHASE 1 — Generate SSML from scripture text
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-- Copy scripture text from source:
-  - Inspired Version of the Bible:       https://study.zionbound.com/
-  - Doctrine and Covenants:              https://study.zionbound.com/
-  - Restored Covenant Edition (BoM):     http://www.restoredgospel.com/Scriptures1/Shell_Read_TitlePage.php
-
-- Save as .txt file with naming convention: book-chapter.txt
-
-- Open ssml_converter.html (local admin tool)
-
-- Drag and drop the .txt file onto the drop zone
-
-- The tool calls the Claude API and auto-downloads two files:
-  - V1 SSML — verse numbers removed, used for Amazon Polly TTS
-  - V2 SSML — verse numbers retained, used for VTT Converter and Audio Sync Player
-
-- Save both files in the source files folder for the book they belong to
+**Scripture Reader — Automated Pipeline Documentation**
+Last rewritten: 2026-07-17 (after Mosiah Chapters 1-13 + the vtt_align.py
+search-window fix). Supersedes the manual-tool workflow described in
+README.txt and the original Scripture_Reader_workflow_document.txt below
+it in git history. The admin/ browser tools still work as a manual
+fallback (see ADMIN TOOLS REFERENCE at the end) but the pipeline below is
+the current, normal way new chapters get added.
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  PHASE 2a — Generate audio with Amazon Polly
+  1. WHAT THIS IS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-- Sign into AWS: https://signin.aws.amazon.com/
+A pipeline that turns a plain-text scripture chapter into a published,
+audio-synced reading page:
 
-- Navigate to Amazon Polly:
-  https://us-east-1.console.aws.amazon.com/polly/home/SynthesizeSpeech?region=us-east-1#
+  source .txt  -->  SSML  -->  Polly narration (mp3)  -->  Whisper
+  transcript  -->  verse-aligned timestamps  -->  hosted mp3 on
+  Archive.org  -->  chapter HTML page  -->  committed to GitHub  -->
+  published on the live site.
 
-- Settings:
-  - Engine:   Neural
-  - Language: English, British
-  - Voice:    Brian, Male
-  - SSML toggle: ON
-
-- Copy/paste the full content of the V1 SSML file into the text area
-
-- Select "Save to S3"
-  - Use bucket: rex-file-storage-2026
-  - Click Save and wait for the job to complete
-
-- Download the .mp3 file from S3 and save to the source files folder
-
-- Delete the file from "rex-file-storage-2026" to avoid ongoing storage charges
+The whole thing lives in Python scripts under automation/, run in
+sequence (by hand, phase by phase, inside a Claude/Cowork session --
+see Section 6 for why pipeline.py's one-shot orchestration doesn't
+currently work end to end in that environment).
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  PHASE 2b — Generate verse-aligned VTT with Whisper
+  2. REPOSITORY LAYOUT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-- Open a Command Prompt (Windows) and run Whisper on the MP3:
+GitHub repo root = "Scripture Reader-WORKING/" (this is the git
+repository; do not run git commands from its parent "Scripture-Reader"
+folder -- that one is not itself a repo).
 
-    python -m whisper "path\to\chapter.mp3" --model small --output_format vtt
-    rename "path\to\chapter.vtt" "chapter-whisper.vtt"
+  Scripture Reader-WORKING/
+    site/                       DEPLOYED -- the public site
+      index.html                  library homepage (generated -- see 7a)
+      chapter_player.js           shared player script, all chapters
+      chapter_player.css          shared player styles, all chapters
+      library.json                 master chapter list (generated)
+      chapterfiles/*.html          one file per chapter (generated)
+    automation/                 the pipeline scripts (this doc's focus)
+      ssml_generate.py            Phase 1.5
+      polly_synthesize.py         Phase 2a
+      vtt_align.py                Phase 2b
+      archive_upload.py           Phase 3
+      chapter_export.py           Phase 4
+      pipeline.py                 orchestrator (see Section 6 caveat)
+      deploy_key / deploy_key.pub SSH deploy key -- gitignored
+    admin/                       legacy manual browser tools (fallback)
+      admin.html, ssml_converter.html, vtt_converter.html,
+      audio_sync_player.html, scripture_reader.html
+    docs/                        documentation
+      Scripture_Reader_workflow_document.txt   <- this file
+      README.txt, VERSION_LOG.txt              <- pre-automation, historical
+      SKILL.md, ssml-converter-SKILL.md
+    build_index.py               root-level -- rebuilds site/index.html
+                                  with the correct light-theme design
+                                  (see the workaround in Section 7a)
+    credentials.local.txt        AWS + Archive.org keys -- gitignored
+    scripture_export_log.csv     append-only export log
+    .gitignore
 
-  NOTE: First run downloads the Whisper model (~460MB) — this only happens once.
-  The FP16/FP32 warning is harmless and can be ignored.
+  Source Files/                 SIBLING folder, OUTSIDE the git repo
+    {Book}/{ChapterNum}/
+      "{Book} Ch {N} orig text.txt"        source text (input)
+      {Book}_Ch_{N}_orig_text-v1.ssml       Polly input (generated)
+      {Book}_Ch_{N}_orig_text-v2.ssml       alignment input (generated)
+      "{Book} Ch {N}.mp3"                   Polly narration (generated)
+      "{Book} Ch {N}.vtt"                   raw Whisper transcript (Rex, local)
+      {Book}_Ch_{N}_orig_text-final-vtt.vtt verse-aligned output (generated)
+      book-of-mormon-{book-slug}-chapter-{n}.json   backup JSON (generated)
 
-- The output is renamed to filename-whisper.vtt and saved to the same folder
-  as the MP3 (or your current directory). Move it to the chapter's source
-  files folder.
-
-- Open vtt_converter.html (local admin tool)
-
-- Drag and drop BOTH files onto the drop zone at the same time (or one at a time):
-  - V2 SSML file
-  - Whisper VTT file (filename-whisper.vtt)
-
-- Click Convert
-
-- Review the Conversion Summary:
-  - Word-matched: verses with exact Whisper timestamps (best accuracy)
-  - Interpolated: verses estimated between anchors (good accuracy)
-  - Low Confidence: verses with weak word matches — check these during playback
-
-- Click Download VTT — downloads filename-final-vtt.vtt (the "-whisper" suffix
-  is replaced with "-final-vtt") to the source files folder
-
-- This verse-aligned VTT replaces the V2 SSML as input to the Audio Sync Player.
-  No manual timing adjustment is needed.
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  PHASE 3 — Upload MP3 to Archive.org
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-- Login to Archive.org (account linked to Google account):
-  https://archive.org/upload
-
-- Click Upload and drag/drop or choose the .mp3 file
-
-- Fill out the required information about the file:
-  - Title structure:       Bookname Ch #
-  - Description structure: Scripture Set, Bookname Ch # AI Voice
-  - Tags structure:        Scripture Set, Bookname Chapter #
-
-- Add the entry to the List "Scripture Reader"
-
-- Click "Upload and Create Your Item" and wait until the page is created
-
-- Hit the play button and confirm the audio is the correct voice and chapter
-
-- Copy the direct download URL:
-  - In Download Options, right-click VBR MP3 → Copy Link Address
-  - URL must use /download/ not /details/:
-      WRONG:   https://archive.org/details/your-item
-      CORRECT: https://archive.org/download/your-item/your-file.mp3
-
-- Save the URL — it is needed in Phase 4
+  Because "Source Files/" is outside the repo, nothing in it ever needs
+  a git commit -- only files under "Scripture Reader-WORKING/" do.
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  PHASE 4 — Sync and export chapter player
+  3. CREDENTIALS & AUTHENTICATION (one-time setup, already done)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-- Open audio_sync_player.html (local admin tool)
+credentials.local.txt (repo root, gitignored -- never committed):
+  AWS_ACCESS_KEY_ID=...
+  AWS_SECRET_ACCESS_KEY=...
+  AWS_DEFAULT_REGION=us-east-1
+  IA_ACCESS_KEY=...           (Archive.org S3-like API key)
+  IA_SECRET_KEY=...
 
-- Drag and drop both files onto the drop zone:
-  - The chapter .mp3 file
-  - The verse-aligned .vtt file from Phase 2b
+  Get/refresh Archive.org keys at https://archive.org/account/s3.php
 
-- The blue info bar will confirm the VTT is loaded with exact timestamps.
-  The timing rate controls are not needed and will be dimmed automatically.
+  In a Claude/Cowork session: always fetch these values with the Read
+  tool, not bash "cat"/"source" -- the sandbox's bash-mounted view of
+  this file has repeatedly been observed stale relative to the Read
+  tool's view. Pass values straight into "export VAR=..." in bash;
+  never print them in a chat response.
 
-- Play back a few spots to verify verse highlighting follows the audio correctly
+Git push authentication -- SSH deploy key (NOT a personal access token):
+  automation/deploy_key / deploy_key.pub -- ED25519 keypair, added to
+  the GitHub repo as a repo-scoped Deploy Key with write access. Both
+  files are gitignored. This exists specifically so no plaintext token
+  ever has to live in .git/config or be re-entered.
 
-- Fill out the Export Chapter Player section:
-  - Scripture Set:  e.g. Book of Mormon
-  - Book:           e.g. 1 Nephi
-  - Chapter:        e.g. Chapter 3
-  - MP3 URL:        paste the Archive.org /download/ URL from Phase 3
+  To push as git, set:
+    GIT_SSH_COMMAND='ssh -i "automation/deploy_key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new'
 
-- Click "Export Chapter Player"
-  - Two files download automatically:
-      book-of-mormon-1-nephi-chapter-3.html  → move to chapterfiles/ folder
-      index.html                              → replace root index.html
+  Inside a Cowork sandbox specifically, raw outbound SSH (port 22) isn't
+  reachable -- traffic must be tunneled through the sandbox's local HTTP
+  proxy via socat. Append this to the command above when running inside
+  a sandbox (detected via the SANDBOX_RUNTIME environment variable):
+    -o ProxyCommand='socat - PROXY:localhost:%h:%p,proxyport=3128'
 
-- Click "Download export log" (between Export Chapter Player and Copy JSON)
-  and save locally (do not deploy this file)
+  automation/pipeline.py's git_env() function builds this automatically
+  and is the reference implementation -- copy its logic if scripting
+  git calls by hand instead of running pipeline.py.
 
-- Click "Save JSON to file" and save the .json to the source files folder
+  On Rex's own Windows machine, plain ssh works with no proxy, via
+  C:\Users\rexma\.ssh\config -- must be literally named "config" with
+  no file extension (Windows can hide ".txt" and silently break this).
 
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  NOTE (added during automation build-out, pending full doc rewrite)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-As of the automated pipeline (automation/ scripts: ssml_generate.py,
-polly_synthesize.py, vtt_align.py, archive_upload.py, chapter_export.py,
-pipeline.py), the site was redesigned with a light theme, a QR share
-button, and collapsible book groups on the homepage.
-
-chapter_export.py still regenerates site/index.html from an OLD dark-theme
-template every time it runs (Phase 4) -- this is a known bug, not yet
-fixed in the script itself. Running chapter_export.py for a new chapter
-will silently wipe the light theme / QR button / collapsible groups from
-index.html.
-
-WORKAROUND (use every time, until chapter_export.py itself is patched):
-  After running chapter_export.py (directly or via pipeline.py) for any
-  chapter(s), always run:
-
-      python3 build_index.py
-
-  from the "Scripture Reader-WORKING" folder. This rebuilds site/index.html
-  from the current site/library.json using the correct current design
-  (light theme, QR button, collapsible groups). It is safe to re-run any
-  time and does not touch library.json, chapter files, or the export log.
-
-  build_index.py lives at the root of "Scripture Reader-WORKING/".
-
-A full documentation rewrite covering the entire automated pipeline
-(credentials setup, SSH deploy key, all automation/ scripts, this
-build_index.py step, etc.) is planned once the Mosiah 1-13 batch is
-complete -- this note is an interim placeholder so the fix isn't lost
-before then.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  PHASE 5 — Verify locally
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-- Open your local index.html in a browser
-
-- Confirm the new chapter appears in the library
-
-- Open the chapter and verify the audio plays and verse highlighting
-  follows along correctly from the beginning
+Amazon Polly settings (fixed convention -- do not change without asking):
+  Engine:        neural
+  Voice:         Brian
+  Language code: en-GB
+  Output format: mp3
+  Scratch S3 bucket: rex-file-storage-2026 (object is deleted right
+    after download to avoid storage charges -- see polly_synthesize.py)
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  PHASE 6 — Publish to Netlify
+  4. THE VERSIFICATION RULE -- READ THIS BEFORE PROCESSING ANY CHAPTER
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-- Assemble the Scripture Reader publish folder with these files:
-    DEPLOY (include):
-      index.html
-      chapter_player.js
-      chapter_player.css
-      chapterfiles/*.html
+Rex's source is the Restored Covenant Edition (RCE) of the Book of
+Mormon, NOT the LDS edition. The RCE has its own chapter and verse
+divisions, and they can differ substantially from the familiar LDS
+numbering -- e.g. RCE "Mosiah Chapter 7" (124 verses) spans content
+that the LDS edition splits across several chapters (it ends with
+Abinadi reciting the Ten Commandments, which in the LDS edition is
+part of Mosiah 12-13).
 
-    DO NOT DEPLOY (local only):
-      admin.html
-      ssml_converter.html
-      vtt_converter.html
-      audio_sync_player.html
-      scripture_reader.html
-      scripture_export_log.csv
-      VERSION_LOG.txt
-      README.txt
-      *.bak
-
-- Login to Netlify: https://app.netlify.com/ (login with Google)
-
-- Open the project: bom-reader
-
-- Drag and drop the Scripture Reader folder to the Production deploys box
-
-- Wait for deploy, then launch and test at:
-  https://bom-reader.netlify.app/index.html
+ALWAYS follow the chapter and verse divisions exactly as given in the
+source .txt file. Never "correct" them to match the LDS edition, and
+never assume the next chapter/book based on LDS-edition familiarity --
+this has caused a wrong assumption before (assuming "2 Nephi 16" was
+next when it was actually "Jacob 1"). If unsure what's next, ask Rex.
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  ADMIN TOOLS REFERENCE
+  5. THE PIPELINE, PHASE BY PHASE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  admin.html             Hub — links to all tools and full workflow steps
-  ssml_converter.html    Phase 1 — txt → V1 + V2 SSML (uses Claude API)
-  vtt_converter.html     Phase 2b — V2 SSML + Whisper VTT → verse-aligned VTT
-  audio_sync_player.html Phase 4 — MP3 + VTT → chapter HTML export
-  scripture_reader.html  Library manager — add/remove chapters, export index
+Phase 1.5 -- ssml_generate.py
+  python3 automation/ssml_generate.py "Source Files/{Book}/{N}/{Book} Ch {N} orig text.txt"
+  Reads the source .txt (title on line 1, blank-line-separated verses
+  each starting with "N "). Writes two files next to it:
+    {base}-v1.ssml   verse numbers stripped, <break time="300ms"/> per
+                     verse -- goes into Polly
+    {base}-v2.ssml   verse numbers retained as "N. text" -- goes into
+                     vtt_align.py
+  Warns (does not fail) if verse numbers aren't sequential 1..N.
 
-All admin tools are local HTML files. Open in any browser. Do not deploy to Netlify.
+Phase 2a -- polly_synthesize.py
+  python3 automation/polly_synthesize.py "{base}-v1.ssml" "Source Files/{Book}/{N}/{Book} Ch {N}.mp3"
+  Calls Polly's async StartSpeechSynthesisTask (required over the
+  simple real-time call because chapter-length SSML exceeds its size
+  limit), polls until done, downloads from S3, deletes the S3 copy.
+  Requires AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_DEFAULT_REGION
+  in the environment.
+
+Phase 2b -- vtt_align.py  (verse alignment)
+  Whisper itself CANNOT run inside a Cowork sandbox session -- see
+  Section 6 for why. In practice Whisper always runs on Rex's own
+  Windows machine, and vtt_align.py is invoked in its two-file mode:
+
+  python3 automation/vtt_align.py "{base}-v2.ssml" "Source Files/{Book}/{N}/{Book} Ch {N}.vtt" "Source Files/{Book}/{N}/{base}-final-vtt.vtt"
+
+  (Whisper's raw output does NOT need a "-whisper" suffix rename with
+  the current scripts -- the third argument above sets the output path
+  explicitly, so any input filename works.)
+
+  This is a 3-pass matching engine:
+    Pass 1: walks the Whisper transcript's word stream looking for each
+            verse's first ~8 words ("anchor words"), scoring exact and
+            partial matches.
+    Pass 2: interpolates timestamps for verses that didn't get a solid
+            word match, proportionally by character count between the
+            nearest matched verses on either side.
+    Pass 3: dedupes/enforces a minimum 0.1s gap between verses.
+  Prints a summary: Word-matched (high confidence) / Interpolated /
+  Low confidence. If "Low confidence" > 0, spot-check that chapter's
+  playback near those verses. See Section 7b for a bug that used to
+  cause large cascading failures here (fixed 2026-07-17).
+
+Phase 3 -- archive_upload.py
+  python3 automation/archive_upload.py "Source Files/{Book}/{N}/{Book} Ch {N}.mp3" --book "{Book}" --chapter-num {N} --scripture-set "Book of Mormon"
+  Uploads via Archive.org's S3-like API (internetarchive package).
+  Fixed metadata convention:
+    Item identifier: {book-slug}-ch-{n}          e.g. mosiah-ch-7
+    Title:           "{Book} Ch {N}"
+    Description:     "{Scripture Set}, {Book} Ch {N} AI Voice"
+    Tags:             "{Scripture Set}, {Book} Chapter {N}"
+  Prints the /download/ URL needed for Phase 4. Requires IA_ACCESS_KEY
+  / IA_SECRET_KEY in the environment.
+
+  A fresh upload can return "503 service unavailable" on the /download/
+  URL for a few minutes -- this is normal post-upload virus-scan/derive
+  processing, not a real failure. Verify via
+  https://archive.org/metadata/{identifier} showing the correct file
+  checksum/size, and don't block on the /download/ URL responding
+  immediately.
+
+  Adding the item to Rex's personal Archive.org "Scripture Reader" list
+  is NOT automated -- Archive.org's public Simple Lists API requires
+  the list to be a registered "collection" (special permissions Rex's
+  account doesn't have), and personal "My Lists" has no public API at
+  all (session-cookie/web-UI only). Rex adds new items to the list by
+  hand.
+
+Phase 4 -- chapter_export.py
+  python3 automation/chapter_export.py \
+      --site "site" \
+      --vtt "Source Files/{Book}/{N}/{base}-final-vtt.vtt" \
+      --scripture-set "Book of Mormon" --book "{Book}" --chapter "Chapter {N}" \
+      --audio-url "https://archive.org/download/{book-slug}-ch-{n}/{Book}%20Ch%20{N}.mp3" \
+      --mp3 "Source Files/{Book}/{N}/{Book} Ch {N}.mp3" \
+      --source-files "Source Files" \
+      --log "scripture_export_log.csv"
+  Writes/updates, all under site/ unless noted:
+    chapterfiles/{scripture-set}-{book}-{chapter}.html   (slugified)
+    library.json           upserts by (scriptureSet, book, chapter);
+                            re-running for an existing chapter replaces
+                            its entry rather than duplicating it
+    index.html              regenerated from the full library -- SEE
+                            THE BUG in Section 7a before trusting this
+    ../{same-slug}.json     backup JSON dropped in the SOURCE FILES
+                            folder next to that chapter (reproduces the
+                            old audio_sync_player.html "Save JSON to
+                            file" format -- lets a chapter be restored
+                            to the library without re-running the whole
+                            pipeline, see docs/README.txt's "RESTORING A
+                            DELETED CHAPTER" section for the by-hand
+                            restore procedure via scripture_reader.html)
+    ../../scripture_export_log.csv   appended row
+
+Phase 5 -- git add / commit / push
+  Stage an EXPLICIT list of the files this run actually touched. Do
+  NOT use "git add -A" or a broad "git add site/" -- other concurrent
+  work (e.g. a separate design thread) can be sitting unstaged in the
+  same working tree, and a broad add will sweep it into your commit
+  without review. Confirmed as acceptable ONLY when it turned out to be
+  expected, already-completed work Rex was aware of -- always safer to
+  list files explicitly and check `git status`/`git diff --stat` first.
+  See Section 3 for the SSH deploy-key auth needed to push.
+
+Phase 6 -- Publish
+  STATUS UNCONFIRMED as of this rewrite -- please confirm with Rex.
+  The original manual workflow (docs/README.txt) describes a manual
+  drag-and-drop of the site folder to Netlify's Production deploys
+  after every export. Nothing in the automated pipeline performs this
+  step or checks whether Netlify is instead auto-deploying from GitHub
+  pushes to main via continuous deployment. Confirm which is true
+  before assuming a git push alone makes a chapter publicly live at
+  https://bom-reader.netlify.app/.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  6. HOW THIS ACTUALLY RUNS IN A CLAUDE/COWORK SESSION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Whisper (openai-whisper) cannot run inside the Cowork sandbox: it pulls
+in a full CUDA build of PyTorch (~3GB+), which exceeds the sandbox's
+free disk (~4GB), and the lighter CPU-only PyTorch package index isn't
+on the network allowlist. So the split is:
+
+  1. Claude runs Phase 1.5 (SSML) and Phase 2a (Polly) for the batch of
+     chapters Rex says are ready.
+  2. Claude emails Rex (Gmail draft only -- the Gmail connector can
+     create drafts but cannot send) that Whisper is needed, with the
+     mp3 file paths.
+  3. Rex runs Whisper locally, one Command Prompt window per chapter
+     (his machine -- i7-13700K, 24 threads, 32GB RAM -- comfortably
+     handles several in parallel):
+       python -m whisper "path\to\chapter.mp3" --model small --output_format vtt
+     and confirms back in chat when done.
+  4. Claude runs Phase 2b (alignment, using the Whisper .vtt Rex just
+     produced), Phase 3 (upload), Phase 4 (export), and Phase 5
+     (commit/push).
+
+pipeline.py exists as a single end-to-end orchestrator but has NOT been
+run end to end in a Cowork session, for two reasons: (a) its Phase 2b
+call invokes vtt_align.py's --mp3 mode, which runs Whisper internally
+and can't work in the sandbox (see above); (b) its Phase 5 git step
+uses "git add -A", broader than the explicit-file-list practice this
+doc recommends (Section 5, Phase 5). If pipeline.py is ever run end to
+end, both of these need to be revisited first -- either run it only on
+Rex's own machine (where Whisper does work locally, if pipeline.py
+were pointed at an existing mp3+audio-url so it skips 2a/3, and the
+git step reviewed before committing), or patch it to match the current
+split-step, explicit-add practice.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  7. KNOWN BUGS AND WORKAROUNDS -- FOLLOW UNTIL FIXED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+7a. index.html regenerates with the OLD DARK theme every Phase 4 run
+    (STILL UNFIXED)
+    The site was redesigned with a light theme, a QR share button, and
+    collapsible book groups. chapter_export.py's build_index_html()
+    function still generates the OLD dark-theme markup every time it
+    runs -- so every Phase 4 export silently wipes the current design
+    from site/index.html.
+
+    WORKAROUND, every time, without exception: after running
+    chapter_export.py for any chapter(s), run:
+        python3 build_index.py
+    from the "Scripture Reader-WORKING" folder. This rebuilds
+    site/index.html from the current site/library.json using the
+    correct light-theme/QR/collapsible-groups design. Safe to re-run
+    any time; touches only index.html.
+
+    BEFORE PUSHING, verify the rebuild actually took (learned the hard
+    way from a real regression that briefly went live):
+      - grep site/index.html for "#faf5ea" (light bg) present, and for
+        "#0e0d0b", "#161512", "#ede8df" (old dark colors) absent
+      - grep for "qr-overlay" and "Collapsible groups"/".g-arrow" markers
+      - run an HTML tag-balance check (0 unclosed tags)
+      - confirm chapter counts match: number of entries in
+        library.json == count of class="chapter-item" == count of
+        class="chapter-card" in index.html
+
+7b. vtt_align.py's word-search could get permanently stuck on long
+    chapters (FIXED 2026-07-17)
+    The original Pass 1 only searched 800 words forward of the last
+    confirmed match. A long chapter (Mosiah 7: 124 verses / 3,210
+    words -- see Section 4 on why RCE chapters can be unusually long)
+    could throw the matcher off around a short/generic/repetitive verse,
+    after which it could never search far enough forward to recover --
+    cascading low-confidence/interpolated results through the rest of
+    the chapter (42 of 124 verses affected).
+    FIX: widened the forward window and added a proportional-position
+    recovery search (by character offset through the chapter) that can
+    re-anchor the matcher anywhere in the transcript, not just forward
+    of the last hit. Mosiah 7 dropped to 16/124 affected verses, in
+    line with other chapters. If a future chapter still shows a long
+    unbroken run of low-confidence/interpolated verses (rather than
+    scattered single ones), re-examine align_verses() in vtt_align.py.
+
+7c. Cowork sandbox file-write truncation (ongoing risk, not fully
+    explained -- work around it every time)
+    The Edit tool (and occasionally direct bash writes) can silently
+    truncate a file mid-write in this sandbox, sometimes leaving
+    syntactically-valid-but-wrong Python that still passes py_compile.
+    When patching ANY file in this repo from within a Cowork session:
+      1. git show HEAD:path/to/file > scratch/clean.py   (known-good copy)
+      2. apply the change via a Python script doing
+         content.replace(old, new) with an assert count == 1 guard
+      3. write the result to a scratch path, verify: wc -l, tail -c,
+         py_compile (for .py files)
+      4. cp into the real repo path
+      5. diff the two / compare md5sum to confirm byte-identical
+      6. only then git add / commit
+    Skipping this and editing the real file in place has produced
+    corrupted commits more than once this project.
+
+7d. Bash's mounted view of files can be stale
+    Particularly observed with credentials.local.txt: bash's view
+    lagged behind the Read tool's view of the same file more than once.
+    Always fetch current values with the Read tool; treat a bash "cat"
+    of a just-edited file with suspicion.
+
+7e. Cowork file-delete permission needed for git
+    git relies on unlink() for its lockfiles; unlink() on a mounted
+    folder is blocked by default in Cowork. Before the first git
+    operation in a fresh session, call the file-delete-enable tool
+    (mcp__cowork__allow_cowork_file_delete) for both the outputs folder
+    and the connected working folder, or git will fail with errors like
+    "Unable to create index.lock: File exists" or "cannot lock ref
+    'HEAD'".
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  8. FILE NAMING & METADATA CONVENTIONS -- QUICK REFERENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Source text:      Source Files/{Book}/{N}/"{Book} Ch {N} orig text.txt"
+  SSML base:         same name with spaces -> underscores, minus " orig text.txt"
+  V1 SSML:            {base}-v1.ssml
+  V2 SSML:            {base}-v2.ssml
+  MP3:                "{Book} Ch {N}.mp3"
+  Raw Whisper VTT:    "{Book} Ch {N}.vtt"  (Rex's Whisper output, used as-is)
+  Aligned VTT:        {base}-final-vtt.vtt
+  Backup JSON:        book-of-mormon-{book-slug}-chapter-{n}.json
+                       (dropped in the source chapter's folder)
+  Archive.org item:   {book-slug}-ch-{n}          e.g. mosiah-ch-7
+  Archive.org title:  "{Book} Ch {N}"
+  Archive.org descr:  "{Scripture Set}, {Book} Ch {N} AI Voice"
+  Archive.org tags:   "{Scripture Set}, {Book} Chapter {N}"
+  Site chapterfile:   site/chapterfiles/{scripture-set}-{book}-{chapter}.html
+                       (fully slugified, e.g. book-of-mormon-mosiah-chapter-7.html)
+
+  BOOK_ORDER (canonical sort in chapter_export.py / library display) for
+  Book of Mormon: 1 Nephi, 2 Nephi, Jacob, Enos, Jarom, Omni, Words of
+  Mormon, Mosiah, Alma, Helaman, 3 Nephi, 4 Nephi, Mormon, Ether, Moroni.
+  (Old Testament, New Testament, and Pearl of Great Price orders are
+  also defined in chapter_export.py's BOOK_ORDER dict; Doctrine and
+  Covenants has no defined order yet -- falls back to chapter-number sort.)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  9. PRE-PUSH VERIFICATION CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Run every time before "git push", not just after touching index.html:
+
+  [ ] python3 build_index.py has been run since the last chapter_export.py
+      call (Section 7a)
+  [ ] site/index.html: light theme colors present, dark-theme colors
+      absent, QR/collapsible markers present
+  [ ] site/index.html: 0 unclosed HTML tags
+  [ ] library.json entry count == chapter-item count == chapter-card
+      count in index.html
+  [ ] git status / git diff --stat reviewed -- staged file list is
+      exactly what this run touched, nothing broader
+  [ ] vtt_align.py's printed "Low confidence" count reviewed for each
+      chapter processed -- flag any chapter with an unusually high
+      count (or a long unbroken run, per 7b) to Rex for a playback
+      spot-check
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  10. ADMIN TOOLS REFERENCE (legacy manual fallback)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If the automation ever needs to be bypassed (e.g. no Claude session
+available), these browser tools under admin/ still work and mirror the
+same phases. See docs/README.txt for the full manual walkthrough.
+
+  admin.html             Hub -- links to all tools and the full manual workflow
+  ssml_converter.html    Phase 1 -- txt -> V1 + V2 SSML (uses Claude API directly)
+  vtt_converter.html     Phase 2b -- V2 SSML + Whisper VTT -> verse-aligned VTT
+  audio_sync_player.html Phase 4 -- MP3 + VTT -> chapter HTML export, export log,
+                          "Save JSON to file" backup
+  scripture_reader.html  Library manager -- add/remove chapters by hand, restore a
+                          deleted chapter from its chapterfiles/*.html, export index.html
+
+All admin tools are local HTML files, open directly in a browser. Never
+deploy them to Netlify. They share a browser-localStorage-based library
+independent of site/library.json -- the two are not automatically kept
+in sync, so pick one system (automated pipeline vs. admin tools) per
+session rather than mixing them for the same chapter.
