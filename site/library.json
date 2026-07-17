@@ -214,5 +214,37 @@
     "file": "chapterfiles/book-of-mormon-jacob-chapter-5.html",
     "audioSrc": "https://archive.org/download/jacob-ch-5/Jacob%20Ch%205.mp3",
     "duration": 443
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Enos",
+    "chapter": "Chapter 1",
+    "file": "chapterfiles/book-of-mormon-enos-chapter-1.html",
+    "audioSrc": "https://archive.org/download/enos-ch-1/Enos%20Ch%201.mp3",
+    "duration": 421
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Jarom",
+    "chapter": "Chapter 1",
+    "file": "chapterfiles/book-of-mormon-jarom-chapter-1.html",
+    "audioSrc": "https://archive.org/download/jarom-ch-1/Jarom%20Ch%201.mp3",
+    "duration": 271
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Omni",
+    "chapter": "Chapter 1",
+    "file": "chapterfiles/book-of-mormon-omni-chapter-1.html",
+    "audioSrc": "https://archive.org/download/omni-ch-1/Omni%20Ch%201.mp3",
+    "duration": 507
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Words of Mormon",
+    "chapter": "Chapter 1",
+    "file": "chapterfiles/book-of-mormon-words-of-mormon-chapter-1.html",
+    "audioSrc": "https://archive.org/download/words-of-mormon-ch-1/Words%20of%20Mormon%20Ch%201.mp3",
+    "duration": 294
   }
 ]

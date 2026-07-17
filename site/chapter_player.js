@@ -69,7 +69,7 @@
 
   function showStatus(msg, isError) {
     audioStatus.style.display = 'block';
-    audioStatus.style.color = isError ? '#e06060' : '#c8a96e';
+    audioStatus.style.color = isError ? '#b03a3a' : '#8a6a34';
     audioStatus.textContent = msg;
   }
   function hideStatus() { audioStatus.style.display = 'none'; }
