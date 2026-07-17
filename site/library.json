@@ -182,5 +182,37 @@
     "file": "chapterfiles/book-of-mormon-jacob-chapter-1.html",
     "audioSrc": "https://archive.org/download/jacob-ch-1/Jacob%20Ch%201.mp3",
     "duration": 259
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Jacob",
+    "chapter": "Chapter 2",
+    "file": "chapterfiles/book-of-mormon-jacob-chapter-2.html",
+    "audioSrc": "https://archive.org/download/jacob-ch-2/Jacob%20Ch%202.mp3",
+    "duration": 722
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Jacob",
+    "chapter": "Chapter 3",
+    "file": "chapterfiles/book-of-mormon-jacob-chapter-3.html",
+    "audioSrc": "https://archive.org/download/jacob-ch-3/Jacob%20Ch%203.mp3",
+    "duration": 1584
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Jacob",
+    "chapter": "Chapter 4",
+    "file": "chapterfiles/book-of-mormon-jacob-chapter-4.html",
+    "audioSrc": "https://archive.org/download/jacob-ch-4/Jacob%20Ch%204.mp3",
+    "duration": 190
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Jacob",
+    "chapter": "Chapter 5",
+    "file": "chapterfiles/book-of-mormon-jacob-chapter-5.html",
+    "audioSrc": "https://archive.org/download/jacob-ch-5/Jacob%20Ch%205.mp3",
+    "duration": 443
   }
 ]
