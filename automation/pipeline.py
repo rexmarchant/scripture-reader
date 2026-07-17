@@ -17,20 +17,21 @@ Polly/Archive.org credentials aren't set up yet, do those two steps by hand
 and just re-run this to pick up from Whisper alignment onward).
 
 Usage (minimal, credentials already configured):
-    python3 pipeline.py \\
-        --repo "/path/to/Scripture Reader-WORKING" \\
-        --source-files "/path/to/Source Files" \\
-        --scripture-set "Book of Mormon" --book "2 Nephi" --chapter-num 16 \\
+    python3 pipeline.py \
+        --repo "/path/to/Scripture Reader-WORKING" \
+        --source-files "/path/to/Source Files" \
+        --scripture-set "Book of Mormon" --book "2 Nephi" --chapter-num 16 \
         --txt "/path/to/Source Files/2 Nephi/16/2 Nep Ch 16 orig text.txt"
 
 Usage (no AWS/Archive.org creds yet -- mp3 already recorded/uploaded by hand):
-    python3 pipeline.py ... --mp3 "/path/.../2 Nephi Ch 16.mp3" \\
+    python3 pipeline.py ... --mp3 "/path/.../2 Nephi Ch 16.mp3" \
         --audio-url "https://archive.org/download/2-nephi-ch-16/2%20Nephi%20Ch%2016.mp3"
 """
 
 import argparse
 import functools
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -55,6 +56,29 @@ def has_aws_creds():
 
 def has_ia_creds():
     return bool(os.environ.get("IA_ACCESS_KEY") and os.environ.get("IA_SECRET_KEY"))
+
+
+def git_env():
+    """
+    Build an environment for git commands that authenticates over SSH using
+    the repo-local deploy key (automation/deploy_key), so no personal access
+    token ever needs to live in .git/config or be re-entered.
+
+    Works unmodified on Rex's own machine (plain ssh, direct internet).
+    Inside a Cowork sandbox session (detected via SANDBOX_RUNTIME, set by
+    the sandbox itself), SSH traffic is tunneled through the sandbox's local
+    HTTP proxy via socat, since raw outbound port 22 isn't reachable there.
+    """
+    env = os.environ.copy()
+    key_path = AUTOMATION_DIR / "deploy_key"
+    if not key_path.exists():
+        return env  # no deploy key present -- fall back to whatever git already has configured
+
+    ssh_cmd = f'ssh -i "{key_path}" -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new'
+    if os.environ.get("SANDBOX_RUNTIME") and shutil.which("socat"):
+        ssh_cmd += " -o ProxyCommand='socat - PROXY:localhost:%h:%p,proxyport=3128'"
+    env["GIT_SSH_COMMAND"] = ssh_cmd
+    return env
 
 
 def main():
@@ -159,13 +183,14 @@ def main():
 
     # -- Phase 5: git commit/push --
     if not args.no_git:
-        run(["git", "add", "-A"], cwd=str(repo))
+        genv = git_env()
+        run(["git", "add", "-A"], cwd=str(repo), env=genv)
         commit_msg = f"Add {args.book} {chapter_str}"
-        result = subprocess.run(["git", "commit", "-m", commit_msg], cwd=str(repo))
+        result = subprocess.run(["git", "commit", "-m", commit_msg], cwd=str(repo), env=genv)
         if result.returncode != 0:
             print("(nothing to commit, or commit failed -- check status above)")
         else:
-            run(["git", "push"], cwd=str(repo))
+            run(["git", "push"], cwd=str(repo), env=genv)
     else:
         print("[5] SKIPPED git commit/push (--no-git)")
 
