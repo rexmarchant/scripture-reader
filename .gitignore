@@ -1,1 +1,5 @@
 credentials.local.txt
+automation/deploy_key
+automation/deploy_key.pub
+automation/__pycache__/
+*.pyc
