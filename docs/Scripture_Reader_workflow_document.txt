@@ -146,6 +146,40 @@
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  NOTE (added during automation build-out, pending full doc rewrite)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+As of the automated pipeline (automation/ scripts: ssml_generate.py,
+polly_synthesize.py, vtt_align.py, archive_upload.py, chapter_export.py,
+pipeline.py), the site was redesigned with a light theme, a QR share
+button, and collapsible book groups on the homepage.
+
+chapter_export.py still regenerates site/index.html from an OLD dark-theme
+template every time it runs (Phase 4) -- this is a known bug, not yet
+fixed in the script itself. Running chapter_export.py for a new chapter
+will silently wipe the light theme / QR button / collapsible groups from
+index.html.
+
+WORKAROUND (use every time, until chapter_export.py itself is patched):
+  After running chapter_export.py (directly or via pipeline.py) for any
+  chapter(s), always run:
+
+      python3 build_index.py
+
+  from the "Scripture Reader-WORKING" folder. This rebuilds site/index.html
+  from the current site/library.json using the correct current design
+  (light theme, QR button, collapsible groups). It is safe to re-run any
+  time and does not touch library.json, chapter files, or the export log.
+
+  build_index.py lives at the root of "Scripture Reader-WORKING/".
+
+A full documentation rewrite covering the entire automated pipeline
+(credentials setup, SSH deploy key, all automation/ scripts, this
+build_index.py step, etc.) is planned once the Mosiah 1-13 batch is
+complete -- this note is an interim placeholder so the fix isn't lost
+before then.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   PHASE 5 — Verify locally
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
