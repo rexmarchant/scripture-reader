@@ -246,5 +246,109 @@
     "file": "chapterfiles/book-of-mormon-words-of-mormon-chapter-1.html",
     "audioSrc": "https://archive.org/download/words-of-mormon-ch-1/Words%20of%20Mormon%20Ch%201.mp3",
     "duration": 294
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Mosiah",
+    "chapter": "Chapter 1",
+    "file": "chapterfiles/book-of-mormon-mosiah-chapter-1.html",
+    "audioSrc": "https://archive.org/download/mosiah-ch-1/Mosiah%20Ch%201.mp3",
+    "duration": 1448
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Mosiah",
+    "chapter": "Chapter 2",
+    "file": "chapterfiles/book-of-mormon-mosiah-chapter-2.html",
+    "audioSrc": "https://archive.org/download/mosiah-ch-2/Mosiah%20Ch%202.mp3",
+    "duration": 546
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Mosiah",
+    "chapter": "Chapter 3",
+    "file": "chapterfiles/book-of-mormon-mosiah-chapter-3.html",
+    "audioSrc": "https://archive.org/download/mosiah-ch-3/Mosiah%20Ch%203.mp3",
+    "duration": 244
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Mosiah",
+    "chapter": "Chapter 4",
+    "file": "chapterfiles/book-of-mormon-mosiah-chapter-4.html",
+    "audioSrc": "https://archive.org/download/mosiah-ch-4/Mosiah%20Ch%204.mp3",
+    "duration": 111
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Mosiah",
+    "chapter": "Chapter 5",
+    "file": "chapterfiles/book-of-mormon-mosiah-chapter-5.html",
+    "audioSrc": "https://archive.org/download/mosiah-ch-5/Mosiah%20Ch%205.mp3",
+    "duration": 860
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Mosiah",
+    "chapter": "Chapter 6",
+    "file": "chapterfiles/book-of-mormon-mosiah-chapter-6.html",
+    "audioSrc": "https://archive.org/download/mosiah-ch-6/Mosiah%20Ch%206.mp3",
+    "duration": 612
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Mosiah",
+    "chapter": "Chapter 7",
+    "file": "chapterfiles/book-of-mormon-mosiah-chapter-7.html",
+    "audioSrc": "https://archive.org/download/mosiah-ch-7/Mosiah%20Ch%207.mp3",
+    "duration": 1148
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Mosiah",
+    "chapter": "Chapter 8",
+    "file": "chapterfiles/book-of-mormon-mosiah-chapter-8.html",
+    "audioSrc": "https://archive.org/download/mosiah-ch-8/Mosiah%20Ch%208.mp3",
+    "duration": 891
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Mosiah",
+    "chapter": "Chapter 9",
+    "file": "chapterfiles/book-of-mormon-mosiah-chapter-9.html",
+    "audioSrc": "https://archive.org/download/mosiah-ch-9/Mosiah%20Ch%209.mp3",
+    "duration": 1802
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Mosiah",
+    "chapter": "Chapter 10",
+    "file": "chapterfiles/book-of-mormon-mosiah-chapter-10.html",
+    "audioSrc": "https://archive.org/download/mosiah-ch-10/Mosiah%20Ch%2010.mp3",
+    "duration": 210
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Mosiah",
+    "chapter": "Chapter 11",
+    "file": "chapterfiles/book-of-mormon-mosiah-chapter-11.html",
+    "audioSrc": "https://archive.org/download/mosiah-ch-11/Mosiah%20Ch%2011.mp3",
+    "duration": 2014
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Mosiah",
+    "chapter": "Chapter 12",
+    "file": "chapterfiles/book-of-mormon-mosiah-chapter-12.html",
+    "audioSrc": "https://archive.org/download/mosiah-ch-12/Mosiah%20Ch%2012.mp3",
+    "duration": 248
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Mosiah",
+    "chapter": "Chapter 13",
+    "file": "chapterfiles/book-of-mormon-mosiah-chapter-13.html",
+    "audioSrc": "https://archive.org/download/mosiah-ch-13/Mosiah%20Ch%2013.mp3",
+    "duration": 698
   }
 ]
