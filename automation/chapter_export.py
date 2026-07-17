@@ -470,6 +470,20 @@ def main():
     save_library(site_dir, library)
     print(f"Wrote:   {site_dir / 'library.json'}  ({len(library)} chapters)")
 
+    # Also drop a per-chapter backup JSON next to the source files (same format
+    # audio_sync_player.html's "Save JSON to file" button produced), so a
+    # chapter can be restored to the library without re-running the pipeline.
+    backup_entry = {
+        "scriptureSet": args.scripture_set,
+        "book": args.book,
+        "chapter": args.chapter,
+        "file": f"chapterfiles/{slug}.html",
+        "audioSrc": args.audio_url,
+    }
+    backup_json_path = vtt_path.parent / f"{slug}.json"
+    backup_json_path.write_text(json.dumps(backup_entry, indent=2) + "\n", encoding="utf-8")
+    print(f"Wrote:   {backup_json_path}")
+
     index_html = build_index_html(library)
     (site_dir / "index.html").write_text(index_html, encoding="utf-8")
     print(f"Wrote:   {site_dir / 'index.html'}")
