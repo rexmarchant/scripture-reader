@@ -347,6 +347,38 @@ split-step, explicit-add practice.
     unbroken run of low-confidence/interpolated verses (rather than
     scattered single ones), re-examine align_verses() in vtt_align.py.
 
+7b-2. Duplicated phrasing could still lock onto the wrong (later)
+    occurrence even after 7b (FIXED 2026-07-17, same day, follow-up)
+    Fixing 7b did not catch a second, distinct failure mode: Mosiah 7
+    quotes "thou shalt not make unto thee any graven image..." twice
+    (v97 briefly, v113 in full as part of a second, complete recitation
+    of the commandments). Whisper misheard "thee" as "the" at the real,
+    earlier occurrence (v97), which alone was enough to drop that
+    match's score below the early-accept threshold. The search then
+    kept scanning and found the duplicate phrase 157 seconds later,
+    which happened to score a perfect match. Because the plausibility
+    guard fully exempted "high confidence" (perfect-score) matches from
+    the timing sanity check, this wrong-but-perfect match was accepted
+    outright, verse 97's timestamp jumped ~157s too late, and the dedup
+    pass then dragged every correctly-matched verse from 98-112 forward
+    to cram in just before it. In playback this looked like the
+    highlight stalling at verse 96 for ~2.5 minutes, then jumping
+    straight to verse 113.
+    FIX: (1) _score_anchor_at() now tolerates up to len(anchor)//4
+    (minimum 1) non-matching words as substitutions instead of
+    abandoning the rest of the comparison on the first mismatch, so a
+    single Whisper mishearing doesn't sink an otherwise-correct match's
+    score; (2) the timing-plausibility guard now applies to
+    high-confidence matches too, just with more slack (8x average verse
+    duration vs. 3x for mid/low), instead of being exempt outright.
+    Verified via a chapter-wide monotonic-timing scan (flagging any
+    >30s forward jump or run of >=3 verses within 0.5s of each other)
+    across all 27 previously-exported chapters -- clean except for the
+    original Mosiah 7 case, which is now fixed. If a chapter's playback
+    ever again shows a "stall then jump" pattern, suspect this same
+    duplicate-phrase failure mode and run that scan first before
+    assuming it's something new.
+
 7c. Cowork sandbox file-write truncation (ongoing risk, not fully
     explained -- work around it every time)
     The Edit tool (and occasionally direct bash writes) can silently
@@ -427,6 +459,12 @@ Run every time before "git push", not just after touching index.html:
       chapter processed -- flag any chapter with an unusually high
       count (or a long unbroken run, per 7b) to Rex for a playback
       spot-check
+  [ ] for any chapter with repeated/duplicated phrasing (a verse
+      paraphrased once and quoted again verbatim later -- not rare in
+      scripture), run a monotonic-timing sanity scan on its final-vtt
+      (flag any >30s forward jump or run of >=3 verses within 0.5s of
+      each other) -- see 7b-2; a "high confidence" score is not proof
+      the match landed in the right place
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
