@@ -136,8 +136,19 @@ def words_match(a: str, b: str) -> bool:
 # -- ALIGNMENT ENGINE (3-pass) --------------------------------------------------
 
 def _score_anchor_at(word_list, wi, anchor):
-    """Score how well `anchor` matches the word stream starting at index wi."""
+    """Score how well `anchor` matches the word stream starting at index wi.
+
+    Tolerates a small, bounded number of non-matching anchor words (treated
+    as a substitution -- skip that anchor word and keep going) rather than
+    abandoning the comparison on the first mismatch. Without this, a single
+    Whisper mishearing (e.g. "thee" transcribed as "the") can tank the score
+    of the correct, nearby match so badly that the search keeps hunting and
+    latches onto a coincidental duplicate phrase much later in the chapter
+    (this happens for real in scripture text, where a verse is sometimes
+    paraphrased once and quoted verbatim again later)."""
     score = 0
+    misses = 0
+    max_misses = max(1, len(anchor) // 4)
     w_offset = 0
     for ai in range(len(anchor)):
         w1 = word_list[wi + w_offset] if wi + w_offset < len(word_list) else None
@@ -150,7 +161,10 @@ def _score_anchor_at(word_list, wi, anchor):
         elif w2 is not None and words_match(w2["word"], anchor[ai]):
             w_offset += 2
         else:
-            break
+            misses += 1
+            if misses > max_misses:
+                break
+            w_offset += 1
     return score
 
 
@@ -239,9 +253,14 @@ def align_verses(verses, cues):
             avg_secs_per_verse = total_duration / len(verses)
             matched_secs = [r["startSec"] for r in raw if not r["interpolated"]]
             last_matched_sec = max(matched_secs) if matched_secs else 0
-            plausible_max = last_matched_sec + avg_secs_per_verse * 3
+            # High-confidence (perfect anchor score) matches still get more
+            # slack than mid/low ones, since they're usually right -- but
+            # they are no longer exempt outright (see docstring note above
+            # about duplicated phrases scoring "high" at the wrong spot).
+            slack_multiplier = 8 if confidence == "high" else 3
+            plausible_max = last_matched_sec + avg_secs_per_verse * slack_multiplier
 
-            if candidate_sec > plausible_max and confidence != "high":
+            if candidate_sec > plausible_max:
                 raw.append({
                     "num": verse_num, "text": verse_text, "startSec": -1,
                     "timestamp": "", "confidence": "low", "score": best_score,
