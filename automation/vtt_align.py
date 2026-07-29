@@ -123,12 +123,42 @@ def verse_anchor_words(verse_text: str, n: int = 8):
     return [w for w in norm(stripped).split(" ") if w][:n]
 
 
+def _levenshtein_leq(a: str, b: str, max_dist: int = 1) -> bool:
+    """True if the edit distance between a and b is <= max_dist. Cheap
+    bounded DP -- words here are short (a few characters), so this is not
+    a performance concern."""
+    if a == b:
+        return True
+    if abs(len(a) - len(b)) > max_dist:
+        return False
+    la, lb = len(a), len(b)
+    prev = list(range(lb + 1))
+    for i in range(1, la + 1):
+        cur = [i] + [0] * lb
+        row_min = cur[0]
+        for j in range(1, lb + 1):
+            cost = 0 if a[i - 1] == b[j - 1] else 1
+            cur[j] = min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost)
+            row_min = min(row_min, cur[j])
+        if row_min > max_dist:
+            return False
+        prev = cur
+    return prev[lb] <= max_dist
+
+
 def words_match(a: str, b: str) -> bool:
     if a == b:
         return True
     if len(a) >= 4 and b.startswith(a):
         return True
     if len(b) >= 4 and a.startswith(b):
+        return True
+    # Tolerate a likely single-character Whisper mishearing (e.g. "thee"
+    # transcribed as "the", "o" as "oh") -- but only as a near-miss, not a
+    # blanket substitution, so genuinely different words in a repetitive
+    # phrase (e.g. "shut" vs "encircle" in consecutive "O Lord, wilt Thou..."
+    # verses) are still correctly rejected.
+    if _levenshtein_leq(a, b, 1):
         return True
     return False
 
@@ -137,18 +167,11 @@ def words_match(a: str, b: str) -> bool:
 
 def _score_anchor_at(word_list, wi, anchor):
     """Score how well `anchor` matches the word stream starting at index wi.
-
-    Tolerates a small, bounded number of non-matching anchor words (treated
-    as a substitution -- skip that anchor word and keep going) rather than
-    abandoning the comparison on the first mismatch. Without this, a single
-    Whisper mishearing (e.g. "thee" transcribed as "the") can tank the score
-    of the correct, nearby match so badly that the search keeps hunting and
-    latches onto a coincidental duplicate phrase much later in the chapter
-    (this happens for real in scripture text, where a verse is sometimes
-    paraphrased once and quoted verbatim again later)."""
+    Stops at the first genuine mismatch (words_match already tolerates a
+    near-miss transcription slip like "thee"/"the" or "o"/"oh" -- see Fix A
+    in words_match -- so a mismatch here means the words are actually
+    different, not just a Whisper hiccup)."""
     score = 0
-    misses = 0
-    max_misses = max(1, len(anchor) // 4)
     w_offset = 0
     for ai in range(len(anchor)):
         w1 = word_list[wi + w_offset] if wi + w_offset < len(word_list) else None
@@ -161,10 +184,7 @@ def _score_anchor_at(word_list, wi, anchor):
         elif w2 is not None and words_match(w2["word"], anchor[ai]):
             w_offset += 2
         else:
-            misses += 1
-            if misses > max_misses:
-                break
-            w_offset += 1
+            break
     return score
 
 
@@ -247,6 +267,12 @@ def align_verses(verses, cues):
         else:
             confidence = "low"
 
+        min_viable_score = min(4, len(anchor))
+        if best_word_idx != -1 and best_score < min_viable_score:
+            # Found *something*, but too weak to trust -- treat the same as
+            # no match at all rather than accepting a coincidental hit.
+            best_word_idx = -1
+
         if best_word_idx != -1:
             candidate_sec = word_list[best_word_idx]["startSec"]
 
@@ -260,7 +286,26 @@ def align_verses(verses, cues):
             slack_multiplier = 8 if confidence == "high" else 3
             plausible_max = last_matched_sec + avg_secs_per_verse * slack_multiplier
 
-            if candidate_sec > plausible_max:
+            # A verse that opens with (near-)the same words as the verse
+            # immediately before it (e.g. two consecutive verses both
+            # starting "I have not commanded you...") can match right at
+            # the tail end of the PREVIOUS verse's own real occurrence,
+            # instead of continuing forward to this verse's own, later
+            # position. That produces a candidate that's technically ahead
+            # of last_matched_sec (so the forward-jump guard above doesn't
+            # catch it) but impossibly close given how much text this verse
+            # actually has -- more characters than a human could speak in
+            # that little time. Reject those too, using a generous ceiling
+            # (well above a natural ~12-18 chars/sec speaking pace) so
+            # genuinely short, quickly-delivered verses aren't penalized.
+            MAX_CHARS_PER_SEC = 25
+            implied_gap = candidate_sec - last_matched_sec
+            min_plausible_gap = len(verse_text) / MAX_CHARS_PER_SEC
+            too_fast = implied_gap < min_plausible_gap and confidence != "high" or (
+                confidence == "high" and implied_gap < min_plausible_gap / 3
+            )
+
+            if candidate_sec > plausible_max or too_fast:
                 raw.append({
                     "num": verse_num, "text": verse_text, "startSec": -1,
                     "timestamp": "", "confidence": "low", "score": best_score,
