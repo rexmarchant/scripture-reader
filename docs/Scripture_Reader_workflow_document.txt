@@ -379,6 +379,62 @@ split-step, explicit-add practice.
     duplicate-phrase failure mode and run that scan first before
     assuming it's something new.
 
+7b-3. The 7b-2 fix itself was incomplete -- three more related bugs
+    found auditing 2 Nephi 9 (FIXED 2026-07-29, same day, second
+    follow-up)
+    Rex reported 2 Nephi 9 verses 31-49 had the same stall-then-jump
+    symptom. The cause was a different bug in the same family: Whisper
+    misheard "Lord" as "law" at verse 30, which was enough to throw
+    the match off -- but this time as a ~13-33s DRIFT through the
+    following verses rather than one big jump, too subtle for the
+    monotonic scan added in 7b-2 to catch. Chasing this down surfaced
+    three real problems with the 7b-2 fix:
+      1. words_match() didn't tolerate a near-miss transcription slip
+         at all (e.g. "thee"/"the", "o"/"oh") -- so the FIRST anchor
+         word gate would skip right past a verse's real position if
+         Whisper misheard just that one word, before the mismatch-
+         tolerant scoring from 7b-2 ever got a chance to run. Fixed by
+         giving words_match() a bounded edit-distance (<=1) fallback.
+      2. That fix alone caused a regression: 2 Nephi 3 verses 55-58 (a
+         repetitive "O Lord, wilt Thou..." passage) collapsed into a
+         0.3s cluster, because 7b-2's "tolerate any mismatch" scoring
+         let genuinely different words in a repetitive phrase rack up
+         a false high score. Reverted that part of 7b-2 (near-misses
+         are now handled correctly by words_match() itself, so
+         _score_anchor_at() goes back to stopping at a real mismatch)
+         and added a minimum-viable-score floor so a stray single-word
+         coincidence (e.g. matching only "o") can no longer be accepted
+         as a real hit.
+      3. A separate, adjacent-verse version of the original duplicate-
+         phrase bug also surfaced: when two consecutive verses open
+         with nearly the same words (Mosiah 1 v39/v40 both "I have not
+         commanded you to come up hither...", Mosiah 6 v18), the next
+         verse's search could match the tail of the PREVIOUS verse's
+         own occurrence instead of its own, later position -- producing
+         a verse compressed into a fraction of a second. Added a
+         minimum-pace guard: reject a candidate if it implies a faster-
+         than-humanly-possible speaking rate for that verse's text
+         length (not just checking for jumps too far in the future).
+    Verified via two independent audits run against the actual
+    currently-published site/chapterfiles/*.html (not just the working
+    files in Source Files/): a pace-ratio scan (characters/second per
+    verse vs. that chapter's median pace -- catches a verse compressed
+    into an impossibly short cue) and the monotonic-timing scan from
+    7b-2. Found and fixed 8 affected chapters total: 2 Nephi 3, 9, 12;
+    Jacob 2; Mosiah 1, 6, 7 (re-verified against the final version of
+    the algorithm), 9. Re-ran both audits after the fix -- zero genuine
+    anomalies remain across every chapter with raw alignment materials
+    available (the only remaining flag is a harmless false positive on
+    a chapter's title cue, which is always slow-paced by design).
+    IMPORTANT LESSON: an old-vs-new alignment diff of a few seconds on
+    its own does NOT mean a chapter is broken -- most chapters shift by
+    1-10s under any algorithm tweak without it mattering. Only re-export
+    a chapter if the pace-ratio or monotonic scan actually flags it (or
+    a human reports a real playback problem). Blindly re-exporting every
+    chapter that merely differs from a previous run risks introducing
+    new regressions into chapters that were already fine (this is
+    exactly what happened with 2 Nephi 3 in problem #2 above).
+
 7c. Cowork sandbox file-write truncation (ongoing risk, not fully
     explained -- work around it every time)
     The Edit tool (and occasionally direct bash writes) can silently
@@ -460,11 +516,18 @@ Run every time before "git push", not just after touching index.html:
       count (or a long unbroken run, per 7b) to Rex for a playback
       spot-check
   [ ] for any chapter with repeated/duplicated phrasing (a verse
-      paraphrased once and quoted again verbatim later -- not rare in
-      scripture), run a monotonic-timing sanity scan on its final-vtt
-      (flag any >30s forward jump or run of >=3 verses within 0.5s of
-      each other) -- see 7b-2; a "high confidence" score is not proof
-      the match landed in the right place
+      paraphrased once and quoted again verbatim later, or two
+      consecutive verses that open with nearly the same words -- not
+      rare in scripture), run BOTH: (a) a monotonic-timing sanity scan
+      on its final-vtt (flag any >30s forward jump or run of >=3
+      verses within 0.5s of each other), and (b) a pace-ratio scan
+      (characters/second per verse vs. the chapter's median pace, flag
+      ratio >6x or <0.12x) -- see 7b-2 and 7b-3; a "high confidence"
+      score is not proof the match landed in the right place
+  [ ] do NOT re-export a chapter just because re-running alignment
+      produces a different result than what's currently published --
+      only re-export if one of the two scans above actually flags it,
+      or a real playback problem was reported (see the lesson in 7b-3)
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
