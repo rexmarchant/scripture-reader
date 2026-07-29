@@ -231,6 +231,7 @@ button {
   justify-content: center;
 }
 button:hover { color: var(--text); border-color: rgba(62,52,38,0.3); }
+button:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
 /* Prevent tap highlight on mobile */
 button { -webkit-tap-highlight-color: transparent; }
 
@@ -272,9 +273,16 @@ button.play-main:hover { background: #9d7c40; }
   .vol-wrap {
     display: none;
   }
+  .ctrl-bottom {
+    gap: 6px;
+  }
   button {
-    padding: 5px 10px;
-    font-size: 13px;
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+  #prev-btn, #next-btn {
+    font-size: 11px;
+    letter-spacing: 0.02em;
   }
   button.play-main {
     width: 48px;
@@ -308,11 +316,13 @@ button.play-main:hover { background: #9d7c40; }
   }
   /* Explicit order: buttons first, then seek bar, then time */
   #restart-btn   { order: 1; }
-  #skip-back-btn { order: 2; }
-  #play-btn      { order: 3; }
-  #skip-fwd-btn  { order: 4; }
-  #seek-bar      { order: 5; flex: 1; min-width: 60px; padding: 6px 0; }
-  #time-display  { order: 6; font-size: 10px; min-width: 76px; text-align: right; }
+  #prev-btn      { order: 2; }
+  #skip-back-btn { order: 3; }
+  #play-btn      { order: 4; }
+  #skip-fwd-btn  { order: 5; }
+  #next-btn      { order: 6; }
+  #seek-bar      { order: 7; flex: 1; min-width: 60px; padding: 6px 0; }
+  #time-display  { order: 8; font-size: 10px; min-width: 76px; text-align: right; }
 
   /* Compact button sizing — still finger-friendly at 32px */
   button {
@@ -321,4 +331,14 @@ button.play-main:hover { background: #9d7c40; }
     padding: 4px 8px;
     font-size: 11px;
   }
- 
+  button.play-main {
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+  }
+
+  /* Hide volume (no room) and timestamps in transcript */
+  .vol-wrap { display: none; }
+  .lyric-line { font-size: 14px; padding: 5px 12px; }
+  .lyric-line .ts { display: none; }
+}

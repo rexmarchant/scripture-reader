@@ -39,9 +39,11 @@
         </div>
         <div class="ctrl-bottom">
           <button id="restart-btn" aria-label="Restart">⏮</button>
+          <button id="prev-btn" aria-label="Previous chapter">PREV</button>
           <button id="skip-back-btn" aria-label="Skip back 10s">−10s</button>
           <button id="play-btn" class="play-main" aria-label="Play">▶</button>
           <button id="skip-fwd-btn" aria-label="Skip forward 10s">+10s</button>
+          <button id="next-btn" aria-label="Next chapter">NEXT</button>
           <div class="vol-wrap">
             <span>🔉</span>
             <input type="range" id="vol-bar" min="0" max="1" value="1" step="0.01" aria-label="Volume">
@@ -142,6 +144,21 @@
       audio.pause();
     }
   });
+
+  // Chapter navigation — links injected per-page as window.CHAPTER_NAV by build_index.py
+  const nav = window.CHAPTER_NAV || null;
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  if (!nav) {
+    // Old export without nav data: hide buttons rather than show dead controls
+    prevBtn.style.display = 'none';
+    nextBtn.style.display = 'none';
+  } else {
+    if (nav.prev) prevBtn.addEventListener('click', () => { location.href = nav.prev; });
+    else prevBtn.disabled = true;
+    if (nav.next) nextBtn.addEventListener('click', () => { location.href = nav.next; });
+    else nextBtn.disabled = true;
+  }
 
   document.getElementById('restart-btn').addEventListener('click', () => { audio.currentTime = 0; });
   document.getElementById('skip-back-btn').addEventListener('click', () => { audio.currentTime = Math.max(0, audio.currentTime - 10); });

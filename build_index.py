@@ -159,6 +159,25 @@ page = """<!DOCTYPE html>
 </html>
 """ % (STYLE, sidebar_html(), main_html(), QR_PATH)
 
+# ── Inject prev/next chapter navigation into each chapter file ──
+# chapter_player.js reads window.CHAPTER_NAV to wire the PREV/NEXT buttons.
+import re
+for i, e in enumerate(lib):
+    fp = os.path.join(SITE, e['file'])
+    if not os.path.exists(fp):
+        print('WARN: missing chapter file', e['file']); continue
+    s = open(fp, encoding='utf-8').read()
+    prev = os.path.basename(lib[i-1]['file']) if i > 0 else None
+    nxt  = os.path.basename(lib[i+1]['file']) if i < len(lib)-1 else None
+    tag = '<script id="chapter-nav">window.CHAPTER_NAV=%s;</script>' % json.dumps({'prev': prev, 'next': nxt})
+    if 'id="chapter-nav"' in s:
+        s = re.sub(r'<script id="chapter-nav">.*?</script>', tag, s, flags=re.S)
+    else:
+        s = s.replace('<script src="../chapter_player.js"></script>', tag + '\n<script src="../chapter_player.js"></script>')
+    s = s.replace('content="black-translucent"', 'content="default"')  # keep new exports on light status bar
+    open(fp, 'w', encoding='utf-8', newline='\n').write(s)
+print('Injected CHAPTER_NAV into', len(lib), 'chapter files')
+
 out = os.path.join(SITE, 'index.html')
 open(out, 'w', encoding='utf-8', newline='\n').write(page)
 print('Wrote', out, len(page), 'bytes,', len(lib), 'chapters,', sum(len(b) for b in sets.values()), 'books')
