@@ -88,9 +88,9 @@ body{background:#faf5ea;color:#2f2a22;font-family:'Lora',Georgia,serif;min-heigh
 def sidebar_html():
     out = []
     for sname, books in sets.items():
-        out.append('<div class="set-section"><div class="set-label" onclick="this.classList.toggle(\'open\');this.nextElementSibling.classList.toggle(\'open\')">%s <span class="arrow">▶</span></div><div class="set-list">' % html.escape(sname))
+        out.append('<div class="set-section"><div class="set-label" data-key="sb-set:%s">%s <span class="arrow">▶</span></div><div class="set-list">' % (html.escape(sname), html.escape(sname)))
         for bname, entries in books.items():
-            out.append('<div class="book-section"><div class="book-label" onclick="this.classList.toggle(\'open\');this.nextElementSibling.classList.toggle(\'open\')">— %s <span class="arrow">▶</span></div><div class="chapter-list">' % html.escape(bname))
+            out.append('<div class="book-section"><div class="book-label" data-key="sb-book:%s/%s">— %s <span class="arrow">▶</span></div><div class="chapter-list">' % (html.escape(sname), html.escape(bname), html.escape(bname)))
             for e in entries:
                 out.append('<a class="chapter-item" href="%s">%s</a>' % (html.escape(e['file']), html.escape(e['chapter'])))
             out.append('</div></div>')
@@ -100,9 +100,9 @@ def sidebar_html():
 def main_html():
     out = []
     for sname, books in sets.items():
-        out.append('<div class="set-group"><div class="set-group-title">%s</div>' % html.escape(sname))
+        out.append('<div class="set-group" data-key="mn-set:%s"><div class="set-group-title">%s</div>' % (html.escape(sname), html.escape(sname)))
         for bname, entries in books.items():
-            out.append('<div class="book-group"><div class="book-group-title">%s</div><div class="chapter-grid">' % html.escape(bname))
+            out.append('<div class="book-group" data-key="mn-book:%s/%s"><div class="book-group-title">%s</div><div class="chapter-grid">' % (html.escape(sname), html.escape(bname), html.escape(bname)))
             for e in entries:
                 out.append('<a class="chapter-card" href="%s"><div class="play-icon">▶</div><div class="card-text"><div class="card-chapter">%s</div><div class="card-book">%s<span class="card-duration">%s</span></div></div></a>'
                            % (html.escape(e['file']), html.escape(e['chapter']), html.escape(bname), fmt(e.get('duration'))))
@@ -144,15 +144,41 @@ page = """<!DOCTYPE html>
 </div>
 <script>
 (function(){
+  var KEY='sr-collapse-v1', state={};
+  try{state=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+
   document.addEventListener('keydown',function(e){if(e.key==='Escape')document.getElementById('qr-overlay').classList.remove('show');});
+
+  // Main window: arrows + toggle + remembered state (default: sets open, books collapsed)
   document.querySelectorAll('.set-group-title,.book-group-title').forEach(function(t){
     var a=document.createElement('span');a.className='g-arrow';a.textContent='▶';
     t.appendChild(a);
-    t.addEventListener('click',function(){t.parentElement.classList.toggle('open');});
+    t.addEventListener('click',function(){
+      var g=t.parentElement,k=g.getAttribute('data-key');
+      g.classList.toggle('open');
+      if(k){state[k]=g.classList.contains('open');save();}
+    });
   });
-  var mobile=window.matchMedia('(max-width: 640px)').matches;
-  document.querySelectorAll('.set-group').forEach(function(g){g.classList.add('open');});
-  if(!mobile){document.querySelectorAll('.book-group').forEach(function(g){g.classList.add('open');});}
+  document.querySelectorAll('.set-group').forEach(function(g){
+    var k=g.getAttribute('data-key');
+    g.classList.toggle('open',(k in state)?!!state[k]:true);
+  });
+  document.querySelectorAll('.book-group').forEach(function(g){
+    var k=g.getAttribute('data-key');
+    g.classList.toggle('open',(k in state)?!!state[k]:false);
+  });
+
+  // Sidebar: same treatment (default collapsed)
+  document.querySelectorAll('.set-label,.book-label').forEach(function(l){
+    var k=l.getAttribute('data-key');
+    function apply(open){l.classList.toggle('open',open);if(l.nextElementSibling)l.nextElementSibling.classList.toggle('open',open);}
+    if(k&&(k in state))apply(!!state[k]);
+    l.addEventListener('click',function(){
+      var open=!l.classList.contains('open');apply(open);
+      if(k){state[k]=open;save();}
+    });
+  });
 })();
 </script>
 </body>
