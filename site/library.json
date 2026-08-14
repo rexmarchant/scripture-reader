@@ -350,5 +350,125 @@
     "file": "chapterfiles/book-of-mormon-mosiah-chapter-13.html",
     "audioSrc": "https://archive.org/download/mosiah-ch-13/Mosiah%20Ch%2013.mp3",
     "duration": 698
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 1",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-1.html",
+    "audioSrc": "https://archive.org/download/alma-ch-1/Alma%20Ch%201.mp3",
+    "duration": 1371
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 2",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-2.html",
+    "audioSrc": "https://archive.org/download/alma-ch-2/Alma%20Ch%202.mp3",
+    "duration": 342
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 3",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-3.html",
+    "audioSrc": "https://archive.org/download/alma-ch-3/Alma%20Ch%203.mp3",
+    "duration": 1039
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 4",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-4.html",
+    "audioSrc": "https://archive.org/download/alma-ch-4/Alma%20Ch%204.mp3",
+    "duration": 132
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 5",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-5.html",
+    "audioSrc": "https://archive.org/download/alma-ch-5/Alma%20Ch%205.mp3",
+    "duration": 508
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 6",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-6.html",
+    "audioSrc": "https://archive.org/download/alma-ch-6/Alma%20Ch%206.mp3",
+    "duration": 431
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 7",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-7.html",
+    "audioSrc": "https://archive.org/download/alma-ch-7/Alma%20Ch%207.mp3",
+    "duration": 524
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 8",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-8.html",
+    "audioSrc": "https://archive.org/download/alma-ch-8/Alma%20Ch%208.mp3",
+    "duration": 1032
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 9",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-9.html",
+    "audioSrc": "https://archive.org/download/alma-ch-9/Alma%20Ch%209.mp3",
+    "duration": 799
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 10",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-10.html",
+    "audioSrc": "https://archive.org/download/alma-ch-10/Alma%20Ch%2010.mp3",
+    "duration": 1108
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 11",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-11.html",
+    "audioSrc": "https://archive.org/download/alma-ch-11/Alma%20Ch%2011.mp3",
+    "duration": 351
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 12",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-12.html",
+    "audioSrc": "https://archive.org/download/alma-ch-12/Alma%20Ch%2012.mp3",
+    "duration": 2215
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 13",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-13.html",
+    "audioSrc": "https://archive.org/download/alma-ch-13/Alma%20Ch%2013.mp3",
+    "duration": 965
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 14",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-14.html",
+    "audioSrc": "https://archive.org/download/alma-ch-14/Alma%20Ch%2014.mp3",
+    "duration": 1600
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 15",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-15.html",
+    "audioSrc": "https://archive.org/download/alma-ch-15/Alma%20Ch%2015.mp3",
+    "duration": 865
   }
 ]
