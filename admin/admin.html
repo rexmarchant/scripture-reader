@@ -119,11 +119,11 @@
     <div class="nav-label">External</div>
     <a class="nav-item" href="https://console.aws.amazon.com" target="_blank"><span class="icon">☁️</span>AWS Console</a>
     <a class="nav-item" href="https://archive.org/upload" target="_blank"><span class="icon">📤</span>Archive.org Upload</a>
-    <a class="nav-item" href="https://app.netlify.com" target="_blank"><span class="icon">🚀</span>Netlify</a>
+    <a class="nav-item" href="https://dash.cloudflare.com" target="_blank"><span class="icon">🚀</span>Cloudflare Pages</a>
   </div>
 
   <div class="sidebar-footer">
-    <a href="https://bom-reader.netlify.app" target="_blank">↗ Live Site</a>
+    <a href="https://scripture-reader.pages.dev" target="_blank">↗ Live Site</a>
     <a href="VERSION_LOG.txt" target="_blank">Version Log</a>
     <a href="README.txt" target="_blank">README</a>
   </div>
@@ -324,19 +324,18 @@ rename "path\to\chapter.vtt" "chapter-whisper.vtt"</div>
     <details>
       <summary class="phase-summary">
         <span class="phase-num">6</span>
-        <span class="phase-title">Publish to Netlify</span>
-        <span class="phase-tool">netlify.com</span>
+        <span class="phase-title">Publish (Cloudflare Pages)</span>
+        <span class="phase-tool">pages.dev</span>
         <span class="phase-arrow">▶</span>
       </summary>
       <div class="phase-body">
         <ul class="phase-steps">
-          <li>Copy the deploy files into your <strong>Scripture Reader</strong> publish folder (see Deploy Checklist below).</li>
-          <li>Log in to <a href="https://app.netlify.com" target="_blank">app.netlify.com</a> with your Google account.</li>
-          <li>Open the <strong>bom-reader</strong> project.</li>
-          <li>Drag and drop the <strong>Scripture Reader</strong> folder onto the <strong>Production deploys</strong> box.</li>
-          <li>Wait for deploy to complete, then test at <a href="https://bom-reader.netlify.app" target="_blank">bom-reader.netlify.app</a>.</li>
+          <li>Make sure the deploy files are in the <strong>site/</strong> folder (see Deploy Checklist below).</li>
+          <li>Commit and push to the <strong>main</strong> branch on GitHub. Cloudflare Pages deploys automatically.</li>
+          <li>Watch the deploy under <a href="https://dash.cloudflare.com" target="_blank">Workers &amp; Pages</a> &rarr; <strong>scripture-reader</strong> &rarr; Deployments.</li>
+          <li>When it finishes, test at <a href="https://scripture-reader.pages.dev" target="_blank">scripture-reader.pages.dev</a>.</li>
         </ul>
-        <a class="phase-launch blue" href="https://app.netlify.com" target="_blank">Open Netlify ↗</a>
+        <a class="phase-launch blue" href="https://dash.cloudflare.com" target="_blank">Open Cloudflare ↗</a>
       </div>
     </details>
   </div>
@@ -379,8 +378,8 @@ rename "path\to\chapter.vtt" "chapter-whisper.vtt"</div>
     <a class="ext-link" href="https://console.aws.amazon.com/polly" target="_blank">AWS Polly</a>
     <a class="ext-link" href="https://s3.console.aws.amazon.com" target="_blank">AWS S3</a>
     <a class="ext-link" href="https://archive.org/upload" target="_blank">Archive.org Upload</a>
-    <a class="ext-link" href="https://app.netlify.com" target="_blank">Netlify</a>
-    <a class="ext-link" href="https://bom-reader.netlify.app" target="_blank">Live Site</a>
+    <a class="ext-link" href="https://dash.cloudflare.com" target="_blank">Cloudflare Pages</a>
+    <a class="ext-link" href="https://scripture-reader.pages.dev" target="_blank">Live Site</a>
   </div>
 
 </main>

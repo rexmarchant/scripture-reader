@@ -1,5 +1,5 @@
 # Scripture Reader — Version Log
-# Site: https://bom-reader.netlify.app
+# Site: https://scripture-reader.pages.dev (moved from bom-reader.netlify.app, Oct 2026)
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

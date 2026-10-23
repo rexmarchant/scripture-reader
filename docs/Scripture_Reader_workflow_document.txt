@@ -254,14 +254,12 @@ Phase 5 -- git add / commit / push
   See Section 3 for the SSH deploy-key auth needed to push.
 
 Phase 6 -- Publish
-  STATUS UNCONFIRMED as of this rewrite -- please confirm with Rex.
-  The original manual workflow (docs/README.txt) describes a manual
-  drag-and-drop of the site folder to Netlify's Production deploys
-  after every export. Nothing in the automated pipeline performs this
-  step or checks whether Netlify is instead auto-deploying from GitHub
-  pushes to main via continuous deployment. Confirm which is true
-  before assuming a git push alone makes a chapter publicly live at
-  https://bom-reader.netlify.app/.
+  CONFIRMED (Oct 2026): the site auto-deploys from GitHub pushes to
+  main via Cloudflare Pages (project "scripture-reader", build output
+  directory "site", no build command). A git push alone makes a
+  chapter publicly live at https://scripture-reader.pages.dev/.
+  (Previously hosted on Netlify at bom-reader.netlify.app; moved
+  because Netlify paused production deploys.)
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -547,7 +545,7 @@ same phases. See docs/README.txt for the full manual walkthrough.
                           deleted chapter from its chapterfiles/*.html, export index.html
 
 All admin tools are local HTML files, open directly in a browser. Never
-deploy them to Netlify. They share a browser-localStorage-based library
+deploy them to the public site. They share a browser-localStorage-based library
 independent of site/library.json -- the two are not automatically kept
 in sync, so pick one system (automated pipeline vs. admin tools) per
 session rather than mixing them for the same chapter.

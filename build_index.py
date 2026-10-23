@@ -18,7 +18,6 @@ sets = {}
 for e in lib:
     sets.setdefault(e['scriptureSet'], {}).setdefault(e['book'], []).append(e)
 
-QR_PATH = "M0 0h7v1h-7zM8 0h2v1h-2zM17 0h2v1h-2zM22 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM9 1h1v1h-1zM12 1h1v1h-1zM16 1h1v1h-1zM19 1h2v1h-2zM22 1h1v1h-1zM28 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM9 2h1v1h-1zM13 2h1v1h-1zM15 2h3v1h-3zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h3v1h-3zM28 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h2v1h-2zM14 3h3v1h-3zM18 3h1v1h-1zM20 3h1v1h-1zM22 3h1v1h-1zM24 3h3v1h-3zM28 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h2v1h-2zM13 4h2v1h-2zM16 4h3v1h-3zM22 4h1v1h-1zM24 4h3v1h-3zM28 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h8v1h-8zM18 5h2v1h-2zM22 5h1v1h-1zM28 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h7v1h-7zM8 7h3v1h-3zM14 7h1v1h-1zM17 7h2v1h-2zM20 7h1v1h-1zM0 8h1v1h-1zM4 8h1v1h-1zM6 8h4v1h-4zM13 8h5v1h-5zM19 8h7v1h-7zM28 8h1v1h-1zM1 9h1v1h-1zM4 9h1v1h-1zM7 9h1v1h-1zM9 9h2v1h-2zM18 9h1v1h-1zM21 9h8v1h-8zM0 10h5v1h-5zM6 10h2v1h-2zM10 10h2v1h-2zM13 10h3v1h-3zM18 10h1v1h-1zM21 10h2v1h-2zM28 10h1v1h-1zM2 11h1v1h-1zM4 11h1v1h-1zM7 11h2v1h-2zM12 11h2v1h-2zM15 11h3v1h-3zM19 11h3v1h-3zM24 11h2v1h-2zM27 11h2v1h-2zM0 12h1v1h-1zM2 12h5v1h-5zM8 12h1v1h-1zM11 12h1v1h-1zM13 12h1v1h-1zM17 12h1v1h-1zM20 12h2v1h-2zM27 12h1v1h-1zM4 13h2v1h-2zM8 13h1v1h-1zM11 13h1v1h-1zM13 13h2v1h-2zM16 13h2v1h-2zM22 13h1v1h-1zM24 13h5v1h-5zM2 14h1v1h-1zM6 14h2v1h-2zM9 14h1v1h-1zM11 14h2v1h-2zM16 14h2v1h-2zM22 14h1v1h-1zM25 14h2v1h-2zM28 14h1v1h-1zM5 15h1v1h-1zM8 15h2v1h-2zM12 15h1v1h-1zM14 15h1v1h-1zM17 15h4v1h-4zM22 15h1v1h-1zM24 15h1v1h-1zM27 15h2v1h-2zM1 16h4v1h-4zM6 16h1v1h-1zM8 16h1v1h-1zM13 16h6v1h-6zM20 16h2v1h-2zM27 16h1v1h-1zM0 17h1v1h-1zM2 17h3v1h-3zM8 17h3v1h-3zM12 17h1v1h-1zM17 17h2v1h-2zM20 17h1v1h-1zM22 17h4v1h-4zM27 17h2v1h-2zM2 18h3v1h-3zM6 18h3v1h-3zM10 18h2v1h-2zM13 18h3v1h-3zM18 18h1v1h-1zM21 18h2v1h-2zM24 18h1v1h-1zM26 18h1v1h-1zM28 18h1v1h-1zM3 19h1v1h-1zM5 19h1v1h-1zM9 19h1v1h-1zM11 19h3v1h-3zM15 19h3v1h-3zM19 19h1v1h-1zM22 19h1v1h-1zM24 19h1v1h-1zM27 19h2v1h-2zM0 20h3v1h-3zM4 20h1v1h-1zM6 20h2v1h-2zM9 20h1v1h-1zM13 20h1v1h-1zM17 20h1v1h-1zM19 20h7v1h-7zM28 20h1v1h-1zM8 21h1v1h-1zM12 21h3v1h-3zM16 21h1v1h-1zM18 21h1v1h-1zM20 21h1v1h-1zM24 21h1v1h-1zM28 21h1v1h-1zM0 22h7v1h-7zM8 22h1v1h-1zM10 22h1v1h-1zM12 22h1v1h-1zM16 22h2v1h-2zM19 22h2v1h-2zM22 22h1v1h-1zM24 22h3v1h-3zM28 22h1v1h-1zM0 23h1v1h-1zM6 23h1v1h-1zM9 23h1v1h-1zM11 23h1v1h-1zM14 23h1v1h-1zM17 23h4v1h-4zM24 23h1v1h-1zM27 23h1v1h-1zM0 24h1v1h-1zM2 24h3v1h-3zM6 24h1v1h-1zM8 24h3v1h-3zM12 24h4v1h-4zM17 24h1v1h-1zM19 24h7v1h-7zM27 24h2v1h-2zM0 25h1v1h-1zM2 25h3v1h-3zM6 25h1v1h-1zM9 25h1v1h-1zM12 25h2v1h-2zM20 25h2v1h-2zM27 25h1v1h-1zM0 26h1v1h-1zM2 26h3v1h-3zM6 26h1v1h-1zM10 26h2v1h-2zM13 26h5v1h-5zM19 26h1v1h-1zM21 26h1v1h-1zM25 26h4v1h-4zM0 27h1v1h-1zM6 27h1v1h-1zM9 27h9v1h-9zM20 27h1v1h-1zM22 27h4v1h-4zM27 27h2v1h-2zM0 28h7v1h-7zM8 28h1v1h-1zM10 28h2v1h-2zM16 28h2v1h-2zM20 28h1v1h-1zM24 28h2v1h-2zM27 28h1v1h-1z"
 
 STYLE = """
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap');
@@ -130,19 +129,28 @@ page = """<!DOCTYPE html>
     <div class="book-nav">%s</div>
   </nav>
   <main class="main">
-    <div class="welcome"><div class="welcome-row"><h2>Library</h2><button class="qr-btn" id="qr-btn" aria-label="Show QR code to share this site" onclick="document.getElementById('qr-overlay').classList.add('show')">QR</button></div><p>Select a scripture set, book, and chapter to begin listening and reading along.</p></div>
+    <div class="welcome"><div class="welcome-row"><h2>Library</h2><button class="qr-btn" id="qr-btn" aria-label="Show QR code to share this site" onclick="openQR()">QR</button></div><p>Select a scripture set, book, and chapter to begin listening and reading along.</p></div>
     <div class="section-title">Scripture Library</div>
     <div>%s</div>
   </main>
 </div>
 <div class="qr-overlay" id="qr-overlay" role="dialog" aria-label="QR code for this site" onclick="this.classList.remove('show')">
   <div class="qr-card" onclick="event.stopPropagation()">
-    <svg viewBox="-2 -2 33 33" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><rect x="-2" y="-2" width="33" height="33" fill="#ffffff"/><path fill="#1a1712" d="%s"/></svg>
-    <div class="qr-url">bom-reader.netlify.app</div>
+    <div id="qr-box"></div>
+    <div class="qr-url" id="qr-url"></div>
     <div class="qr-hint">Scan to open the Scripture Reader</div>
   </div>
 </div>
+<script src="qrcode.js"></script>
 <script>
+function openQR(){
+  var url=location.href.split('#')[0].split('?')[0].replace('index.html','');
+  var box=document.getElementById('qr-box');
+  try{var q=qrcode(0,'M');q.addData(url);q.make();box.innerHTML=q.createSvgTag({cellSize:6,margin:2,scalable:true});}
+  catch(e){box.textContent='';}
+  document.getElementById('qr-url').textContent=url.replace('https://','').replace('http://','');
+  document.getElementById('qr-overlay').classList.add('show');
+}
 (function(){
   var KEY='sr-collapse-v1', state={};
   try{state=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){}
@@ -183,7 +191,7 @@ page = """<!DOCTYPE html>
 </script>
 </body>
 </html>
-""" % (STYLE, sidebar_html(), main_html(), QR_PATH)
+""" % (STYLE, sidebar_html(), main_html())
 
 # ── Inject prev/next chapter navigation into each chapter file ──
 # chapter_player.js reads window.CHAPTER_NAV to wire the PREV/NEXT buttons.

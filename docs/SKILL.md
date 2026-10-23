@@ -5,7 +5,7 @@ description: >
   synchronized scrolling text from audio + transcript files. Use this skill
   whenever the user wants to: sync audio with scrolling text, build an audio
   book or scripture reader, export chapter HTML players, manage a multi-book
-  library with a public index, host a reader on Netlify, time text to audio
+  library with a public index, host a reader on Cloudflare Pages, time text to audio
   by character count, parse SSML/LRC/VTT/SRT/TXT transcripts, or restore
   deleted chapters from existing HTML files. Also triggers for: "audio sync
   player", "scripture reader", "chapter player", "scrolling text with audio",
@@ -19,7 +19,7 @@ description: >
 
 A complete pipeline for building a listen-and-read-along audio reader:
 character-based transcript timing → chapter HTML export → library index
-generation → Netlify hosting. Designed for scripture but works for any
+generation → Cloudflare Pages hosting. Designed for scripture but works for any
 audio + text pairing (audiobooks, lectures, podcasts).
 
 ---
@@ -36,7 +36,7 @@ Five files power the entire system:
 | `chapter_player.css` | Shared: styles all chapter pages | Yes |
 | `index.html` | Public: reader with baked-in chapter list | Yes |
 
-Folder structure on Netlify:
+Folder structure on the host:
 ```
 root/
 ├── index.html
@@ -59,7 +59,7 @@ Use this skill when the user asks about any of:
 - Parsing SSML, LRC, VTT, SRT, or TXT transcript files
 - Exporting chapter HTML players
 - Managing a book/chapter library with a public index page
-- Hosting a reader on Netlify
+- Hosting a reader on Cloudflare Pages
 - Restoring deleted chapters from saved HTML files
 - Mobile-safe audio player layout (safe area insets, dvh units)
 - Versioning a multi-file web project
@@ -110,11 +110,11 @@ Export also:
 - **Selective delete**: ✕ per chapter, Remove book, Remove set (all with confirm)
 - **Export index.html**: regenerates public reader from current library
 
-### Step 5 — Deploy to Netlify
+### Step 5 — Deploy (Cloudflare Pages)
 
-1. Zip the root folder (index.html + chapter_player.js/css + chapterfiles/)
-2. Drop zip at `netlify.com/drop`
-3. Get public URL — works on any device, no login required
+1. Commit the site folder (index.html + chapter_player.js/css + chapterfiles/ + qrcode.js)
+2. Push to `main` — Cloudflare Pages deploys automatically (output dir `site`, no build command)
+3. Public URL: https://scripture-reader.pages.dev — works on any device, no login required
 
 Updating: re-export chapter → two files download → replace old files → re-zip → drop
 
@@ -309,7 +309,7 @@ Migration: `textfiles/` → `chapterfiles/` prefix runs automatically on
   conflict with new schema.
 
 ### Hosting
-- **Netlify iframe embedding** — works from Netlify; audio in cross-origin
+- **Iframe embedding** — works from the hosted site; audio in cross-origin
   iframes may be blocked by some browsers (autoplay policy).
 - **chapterfiles/ path in index.html** — baked in at export time; stale
   paths from pre-`chapterfiles/` exports fixed by re-exporting or by
@@ -329,8 +329,8 @@ Migration: `textfiles/` → `chapterfiles/` prefix runs automatically on
 
 | Output | Format | Destination |
 |---|---|---|
-| Chapter player | .html | chapterfiles/ → Netlify |
-| Public index | index.html | root → Netlify |
+| Chapter player | .html | chapterfiles/ → site |
+| Public index | index.html | root → site |
 | Chapter JSON | .json or clipboard | scripture_reader add panel |
 | Export log | .csv | local only, do not deploy |
 

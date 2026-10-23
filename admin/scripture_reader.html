@@ -586,7 +586,7 @@ document.getElementById('export-index-btn').addEventListener('click', () => {
   downloadHtml('index.html', buildIndexHtml(chapters));
   const s = document.getElementById('admin-status');
   s.style.display='block';
-  s.textContent=`✓ index.html exported with ${chapters.length} chapter(s) — upload to Netlify to publish.`;
+  s.textContent=`✓ index.html exported with ${chapters.length} chapter(s) — commit and push to publish.`;
 });
 
 // ── Clear all ─────────────────────────────────────────────────────────────────
