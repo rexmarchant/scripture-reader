@@ -470,5 +470,45 @@
     "file": "chapterfiles/book-of-mormon-alma-chapter-15.html",
     "audioSrc": "https://archive.org/download/alma-ch-15/Alma%20Ch%2015.mp3",
     "duration": 865
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 16",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-16.html",
+    "audioSrc": "https://archive.org/download/alma-ch-16/Alma%20Ch%2016.mp3",
+    "duration": 3171
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 17",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-17.html",
+    "audioSrc": "https://archive.org/download/alma-ch-17/Alma%20Ch%2017.mp3",
+    "duration": 1136
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 18",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-18.html",
+    "audioSrc": "https://archive.org/download/alma-ch-18/Alma%20Ch%2018.mp3",
+    "duration": 221
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 19",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-19.html",
+    "audioSrc": "https://archive.org/download/alma-ch-19/Alma%20Ch%2019.mp3",
+    "duration": 1372
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 20",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-20.html",
+    "audioSrc": "https://archive.org/download/alma-ch-20/Alma%20Ch%2020.mp3",
+    "duration": 1194
   }
 ]
