@@ -590,5 +590,45 @@
     "file": "chapterfiles/book-of-mormon-alma-chapter-30.html",
     "audioSrc": "https://archive.org/download/alma-ch-30/Alma%20Ch%2030.mp3",
     "duration": 219
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Helaman",
+    "chapter": "Chapter 1",
+    "file": "chapterfiles/book-of-mormon-helaman-chapter-1.html",
+    "audioSrc": "https://archive.org/download/helaman-ch-1/Helaman%20Ch%201.mp3",
+    "duration": 697
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Helaman",
+    "chapter": "Chapter 2",
+    "file": "chapterfiles/book-of-mormon-helaman-chapter-2.html",
+    "audioSrc": "https://archive.org/download/helaman-ch-2/Helaman%20Ch%202.mp3",
+    "duration": 2188
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Helaman",
+    "chapter": "Chapter 3",
+    "file": "chapterfiles/book-of-mormon-helaman-chapter-3.html",
+    "audioSrc": "https://archive.org/download/helaman-ch-3/Helaman%20Ch%203.mp3",
+    "duration": 1616
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Helaman",
+    "chapter": "Chapter 4",
+    "file": "chapterfiles/book-of-mormon-helaman-chapter-4.html",
+    "audioSrc": "https://archive.org/download/helaman-ch-4/Helaman%20Ch%204.mp3",
+    "duration": 849
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Helaman",
+    "chapter": "Chapter 5",
+    "file": "chapterfiles/book-of-mormon-helaman-chapter-5.html",
+    "audioSrc": "https://archive.org/download/helaman-ch-5/Helaman%20Ch%205.mp3",
+    "duration": 1712
   }
 ]
