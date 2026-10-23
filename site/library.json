@@ -510,5 +510,45 @@
     "file": "chapterfiles/book-of-mormon-alma-chapter-20.html",
     "audioSrc": "https://archive.org/download/alma-ch-20/Alma%20Ch%2020.mp3",
     "duration": 1194
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 21",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-21.html",
+    "audioSrc": "https://archive.org/download/alma-ch-21/Alma%20Ch%2021.mp3",
+    "duration": 2318
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 22",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-22.html",
+    "audioSrc": "https://archive.org/download/alma-ch-22/Alma%20Ch%2022.mp3",
+    "duration": 585
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 23",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-23.html",
+    "audioSrc": "https://archive.org/download/alma-ch-23/Alma%20Ch%2023.mp3",
+    "duration": 557
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 24",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-24.html",
+    "audioSrc": "https://archive.org/download/alma-ch-24/Alma%20Ch%2024.mp3",
+    "duration": 957
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "Alma",
+    "chapter": "Chapter 25",
+    "file": "chapterfiles/book-of-mormon-alma-chapter-25.html",
+    "audioSrc": "https://archive.org/download/alma-ch-25/Alma%20Ch%2025.mp3",
+    "duration": 771
   }
 ]
