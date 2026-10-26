@@ -686,5 +686,61 @@
     "file": "chapterfiles/book-of-mormon-3-nephi-chapter-7.html",
     "audioSrc": "https://archive.org/download/3-nephi-ch-7/3%20Nephi%20Ch%207.mp3",
     "duration": 539
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "3 Nephi",
+    "chapter": "Chapter 8",
+    "file": "chapterfiles/book-of-mormon-3-nephi-chapter-8.html",
+    "audioSrc": "https://archive.org/download/3-nephi-ch-8/3%20Nephi%20Ch%208.mp3",
+    "duration": 764
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "3 Nephi",
+    "chapter": "Chapter 9",
+    "file": "chapterfiles/book-of-mormon-3-nephi-chapter-9.html",
+    "audioSrc": "https://archive.org/download/3-nephi-ch-9/3%20Nephi%20Ch%209.mp3",
+    "duration": 1230
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "3 Nephi",
+    "chapter": "Chapter 10",
+    "file": "chapterfiles/book-of-mormon-3-nephi-chapter-10.html",
+    "audioSrc": "https://archive.org/download/3-nephi-ch-10/3%20Nephi%20Ch%2010.mp3",
+    "duration": 422
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "3 Nephi",
+    "chapter": "Chapter 11",
+    "file": "chapterfiles/book-of-mormon-3-nephi-chapter-11.html",
+    "audioSrc": "https://archive.org/download/3-nephi-ch-11/3%20Nephi%20Ch%2011.mp3",
+    "duration": 369
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "3 Nephi",
+    "chapter": "Chapter 12",
+    "file": "chapterfiles/book-of-mormon-3-nephi-chapter-12.html",
+    "audioSrc": "https://archive.org/download/3-nephi-ch-12/3%20Nephi%20Ch%2012.mp3",
+    "duration": 468
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "3 Nephi",
+    "chapter": "Chapter 13",
+    "file": "chapterfiles/book-of-mormon-3-nephi-chapter-13.html",
+    "audioSrc": "https://archive.org/download/3-nephi-ch-13/3%20Nephi%20Ch%2013.mp3",
+    "duration": 747
+  },
+  {
+    "scriptureSet": "Book of Mormon",
+    "book": "3 Nephi",
+    "chapter": "Chapter 14",
+    "file": "chapterfiles/book-of-mormon-3-nephi-chapter-14.html",
+    "audioSrc": "https://archive.org/download/3-nephi-ch-14/3%20Nephi%20Ch%2014.mp3",
+    "duration": 53
   }
 ]
